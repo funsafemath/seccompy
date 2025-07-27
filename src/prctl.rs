@@ -4,8 +4,7 @@ use core::ffi::c_long;
 
 use libc::{PR_GET_NO_NEW_PRIVS, PR_SET_NO_NEW_PRIVS, c_int, prctl};
 
-/// PR_SET_NO_NEW_PRIVS - set the calling thread's no_new_privs attribute
-/// int prctl(PR_SET_NO_NEW_PRIVS, 1L, 0L, 0L, 0L);
+/// Set the no_new_privs attribute of the calling thread
 pub fn set_no_new_privileges() -> Result<(), c_int> {
     match unsafe {
         prctl(
@@ -23,8 +22,7 @@ pub fn set_no_new_privileges() -> Result<(), c_int> {
     }
 }
 
-/// PR_GET_NO_NEW_PRIVS - get the calling thread's no_new_privs attribute
-/// int prctl(PR_GET_NO_NEW_PRIVS, 0L, 0L, 0L, 0L);
+/// Get the no_new_privs attribute of the calling thread
 pub fn get_no_new_privileges() -> Result<bool, c_int> {
     match unsafe {
         prctl(

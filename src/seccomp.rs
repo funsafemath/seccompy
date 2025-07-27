@@ -1,14 +1,14 @@
-//! This module implements the seccomp() syscall Rust interface
+//! This module implements the seccomp syscall Rust interface
 //!
-//! seccomp has 4 operations, and for each of them this module has a (non-pub) submodule:
+//! seccomp has 4 operations, and for each of them this module has a submodule:
 //!
 //! [check_action] with [is_action_available] and [CheckActionError] exported
 //!
 //! [get_noti_sizes] with [get_notification_sizes], [NotificationSizes] and [GetNotificationSizesError] exported
 //!
-//! [set_filter] with [set_filter::set_filter], [SetFilterResult] and [SetFilterError] exported
+//! [mod@set_filter] with [set_filter::set_filter], [SetFilterResult] and [SetFilterError] exported
 //!
-//! [set_strict] with [set_strict::set_strict] and [SetStrictModeError] exported
+//! [mod@set_strict] with [set_strict::set_strict] and [SetStrictModeError] exported
 //!
 //! Also there is a [filter] module with [BpfInstruction], [FilterAction] and [FilterFlags] exported
 
@@ -22,11 +22,11 @@ use libc::{
 
 use crate::seccomp::filter::BpfProgram;
 
-mod check_action;
-mod filter;
-mod get_noti_sizes;
-mod set_filter;
-mod set_strict;
+pub mod check_action;
+pub mod filter;
+pub mod get_noti_sizes;
+pub mod set_filter;
+pub mod set_strict;
 
 pub use filter::{BpfInstruction, FilterAction, FilterFlags};
 

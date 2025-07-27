@@ -1,13 +1,4 @@
-//! A crate that provides an interface to the seccomp syscall.
-//!
-//! Seccomp allows to filter system calls that a process makes, blocking or allowing them based on arbitrary rules.
-//!
-//! Seccomp user notifications allow a userspace process to handle the system calls instead of the kernel.
-//!
-//! Crate state:
-//! - [x] Seccomp module
-//! - [ ] BPF module
-//! - [ ] Unotify module
+#![doc = include_str!("./../README.md")]
 
 mod error;
 
