@@ -11,7 +11,7 @@ allow a userspace process to handle the system calls instead of the kernel
 
 Strict seccomp:
 
-```no_run
+```rust no_run
 use std::{error::Error, fs::File};
 
 fn main() -> Result<(), Box<dyn Error>> {

@@ -116,7 +116,7 @@ impl Filter {
     fn verify_architecture(&mut self) {
         // A register: arch value
         self.push(statement::load_architecture());
-        // A != (Immediate = arch value) => return the arch mismatch action
+        // (A = runtime arch value) != (Immediate = filter arch value) => return the arch mismatch action
         // unwrap is ok, since the function returns None only if the length of the body is > 255, and the length is 1
         self.extend(
             bpf::statement::if_not_statement(

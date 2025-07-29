@@ -14,7 +14,7 @@ pub struct BpfInstruction {
     pub data: u32,
 }
 
-/// Architecture whose syscall convention was in the syscall invocation
+/// Architecture whose syscall convention was used for the syscall invocation
 ///
 /// Because numbering of system calls varies between architectures and some architectures (e.g., x86-64)
 /// allow user-space code to use the calling conventions of  multi‐ple architectures (and the convention being used may vary over the life of a process that uses execve(2) to execute binaries that employ the different conventions),

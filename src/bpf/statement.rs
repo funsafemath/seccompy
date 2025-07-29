@@ -46,7 +46,7 @@ pub fn return_immediate(data: u32) -> Instruction {
     }
 }
 
-/// Load the data from the arguments provided to the BPF program into accumulator register
+/// Load the data from the arguments provided to the BPF program into the accumulator register
 pub fn load_input(size: Size, offset: u32) -> Instruction {
     Instruction::LoadAccumulator {
         addressing_mode: AddressingMode::ProgramInput,
@@ -148,6 +148,7 @@ pub fn if_or_statement(
         },
     ) in terms_any.into_iter().enumerate()
     {
+        // Unwrap is obviously ok here: terms_max_index is an u8, and 0 <= i <= terms_max_index
         let conditions_remaining = terms_max_index - u8::try_from(i).unwrap();
         let jump_offset_if_false = if conditions_remaining == 0 {
             body_len
@@ -158,7 +159,6 @@ pub fn if_or_statement(
             condition,
             operand,
             data,
-            // Unwrap is obviously ok here: terms_max_index is an u8, and 0 <= i <= terms_max_index
             jump_offset_if_true: conditions_remaining,
             jump_offset_if_false,
         });

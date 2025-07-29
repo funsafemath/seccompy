@@ -16,8 +16,8 @@ pub enum Instruction {
         operand: Operand,
         data: u32,
 
-        // Note that the offsets apply after incrementing the instruction pointer, or, equivalently
-        // jump to (index of the instruction + value + 1)
+        // Note that the offsets apply after incrementing the instruction pointer, or, equivalently,
+        // these jump to (address of the jump instruction + value + 1)
         jump_offset_if_true: u8,
         jump_offset_if_false: u8,
     },
