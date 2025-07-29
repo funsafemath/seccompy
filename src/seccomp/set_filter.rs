@@ -1,11 +1,12 @@
 use core::ffi::c_int;
 use std::{error::Error, fmt::Display};
 
-use libc::{EACCES, EBUSY, EINVAL, ENOMEM, ESRCH, pid_t};
+use libc::{EACCES, EBUSY, EINVAL, ENOMEM, ESRCH, c_long, pid_t};
 
 use crate::{
     FilterFlags,
-    seccomp::{BpfInstruction, Operation, seccomp},
+    bpf::BpfInstruction,
+    seccomp::{Operation, seccomp},
 };
 
 #[derive(Debug)]
@@ -47,6 +48,10 @@ pub enum SetFilterError {
     Unknown(c_int),
 }
 
+// TODO: It'd probably be better if this was a Result<Ok(enum(Success, Descriptor(c_int))), Err(SetFilterError)>,
+// this would simplify handling of the result, but that'd require forbidding using
+// new_listener with sync_threads, but without no_thread_id_on_sync_error (who does this anyway?)
+#[must_use]
 #[derive(Debug)]
 pub enum SetFilterResult {
     Ok,
@@ -57,7 +62,7 @@ pub enum SetFilterResult {
     /// if new_listener is enabled, seccomp will return the descriptor on success;
     /// so without further interaction with the OS it's impossible to determine if the result is a descriptor or a thread id.
     /// To avoid this you can set the no_thread_id_on_sync_error flag.
-    ErroredThreadIdOrDescriptor(isize),
+    ErroredThreadIdOrDescriptor(c_long),
 
     Err(SetFilterError),
 }

@@ -1,4 +1,4 @@
-use core::ffi::{c_uint, c_ushort};
+use core::ffi::c_uint;
 
 use libc::{
     SECCOMP_FILTER_FLAG_LOG, SECCOMP_FILTER_FLAG_NEW_LISTENER, SECCOMP_FILTER_FLAG_SPEC_ALLOW,
@@ -82,7 +82,7 @@ impl From<FilterFlags> for c_uint {
 /// Possible filter actions in decreasing order of precedence
 /// If an action value other than one of the below is specified, then the filter action is treated as
 /// either SECCOMP_RET_KILL_PROCESS (since Linux 4.14) or SECCOMP_RET_KILL_THREAD (in Linux 4.13 and earlier).
-#[repr(u32)]
+// #[repr(u32)]
 #[derive(Debug, Clone, Copy)]
 pub enum FilterAction {
     /// This value results in immediate termination of the process, with a core dump. The system call is not executed.  
@@ -95,7 +95,7 @@ pub enum FilterAction {
     /// its child was terminated as though by a SIGSYS signal.
     ///
     /// Available since Linux 4.14
-    KillProcess = SECCOMP_RET_KILL_PROCESS,
+    KillProcess,
 
     /// This value results in immediate termination of the thread that made the system call. The system call is not executed.
     /// Other threads in the same thread group will continue to execute.
@@ -112,7 +112,7 @@ pub enum FilterAction {
     ///
     /// Note: the use of SECCOMP_RET_KILL_THREAD to kill a single thread in a multithreaded process
     /// is likely to leave the process in a permanently inconsistent and possibly corrupt state.
-    KillThread = SECCOMP_RET_KILL_THREAD,
+    KillThread,
 
     /// This value results in the kernel sending a thread-directed SIGSYS signal to the triggering thread.
     /// (The system call is not executed.)  Various fields will
@@ -132,11 +132,11 @@ pub enum FilterAction {
     /// The return value register will contain an architecture-dependent value;
     /// if resuming execution, set it to something appropriate for the system call.  
     /// (The architecture dependency is because replacing it with ENOSYS could overwrite some useful information.)
-    Trap = SECCOMP_RET_TRAP,
+    Trap { errno: u16 },
 
     /// This value results in the SECCOMP_RET_DATA portion of the filter's return value being passed to user space as the errno value
     /// without executing the system call.
-    Errno = SECCOMP_RET_ERRNO,
+    Errno { errno: u16 },
 
     /// Forward the system call to an attached user-space supervisor process to allow that process to decide what to do with the system call.
     /// If there is no attached supervisor (either because the filter was not installed with the SECCOMP_FILTER_FLAG_NEW_LISTENER flag
@@ -147,7 +147,7 @@ pub enum FilterAction {
     /// with a precedence greater than SECCOMP_RET_USER_NOTIF
     ///
     /// Available since Linux 5.0
-    UserNotif = SECCOMP_RET_USER_NOTIF,
+    UserNotif,
 
     /// When returned, this value will cause the kernel to attempt to notify a ptrace(2)-based tracer prior to executing the system call.  
     /// If there is no tracer present, the system call is not executed and returns a failure status with errno set to ENOSYS.
@@ -169,30 +169,40 @@ pub enum FilterAction {
     ///
     /// Note that a tracer process will not be notified if another filter returns an action value
     /// with a precedence greater than SECCOMP_RET_TRACE.
-    Trace = SECCOMP_RET_TRACE,
+    Trace,
 
     /// This value results in the system call being executed after the filter return action is logged.  
     /// An administrator may override the logging of this action via the /proc/sys/kernel/seccomp/actions_logged file.
     ///
     /// Available since Linux 4.14
-    Log = SECCOMP_RET_LOG,
+    Log,
 
     /// This value results in the system call being executed.
-    Allow = SECCOMP_RET_ALLOW,
+    Allow,
 }
 
-// yes, it uses u8/16/32, not c_uchar/short/int
-#[repr(C)]
-#[derive(Debug)]
-pub struct BpfInstruction {
-    pub code: u16,
-    pub jump_if_true: u8,
-    pub jump_if_false: u8,
-    pub data: u32,
+impl FilterAction {
+    pub fn action(&self) -> u32 {
+        match self {
+            FilterAction::KillProcess => SECCOMP_RET_KILL_PROCESS,
+            FilterAction::KillThread => SECCOMP_RET_KILL_THREAD,
+            FilterAction::Trap { .. } => SECCOMP_RET_TRAP,
+            FilterAction::Errno { .. } => SECCOMP_RET_ERRNO,
+            FilterAction::UserNotif => SECCOMP_RET_USER_NOTIF,
+            FilterAction::Trace => SECCOMP_RET_TRACE,
+            FilterAction::Log => SECCOMP_RET_LOG,
+            FilterAction::Allow => SECCOMP_RET_ALLOW,
+        }
+    }
 }
 
-#[repr(C)]
-pub(super) struct BpfProgram {
-    pub length: c_ushort,
-    pub bytecode: *const BpfInstruction,
+impl From<FilterAction> for u32 {
+    fn from(value: FilterAction) -> Self {
+        match value {
+            FilterAction::Errno { errno } | FilterAction::Trap { errno } => {
+                value.action() | errno as u32
+            }
+            _ => value.action(),
+        }
+    }
 }

@@ -73,8 +73,8 @@ mod tests {
         // these should be available everywhere if the kernel supports the seccomp
         let actions = &[
             FilterAction::KillThread,
-            FilterAction::Trap,
-            FilterAction::Errno,
+            FilterAction::Trap { errno: 101 },
+            FilterAction::Errno { errno: 202 },
         ];
 
         for action in actions {

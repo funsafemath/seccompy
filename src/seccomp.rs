@@ -13,14 +13,12 @@
 //! Also there is a [filter] module with [BpfInstruction], [FilterAction] and [FilterFlags] exported
 
 use core::ffi::{c_uint, c_void};
-use std::ptr;
+use std::{ffi::c_long, ptr};
 
 use libc::{
     EINVAL, SECCOMP_GET_ACTION_AVAIL, SECCOMP_GET_NOTIF_SIZES, SECCOMP_SET_MODE_FILTER,
     SECCOMP_SET_MODE_STRICT, SYS_seccomp, c_ushort, seccomp_notif_sizes, syscall,
 };
-
-use crate::seccomp::filter::BpfProgram;
 
 pub mod check_action;
 pub mod filter;
@@ -28,12 +26,14 @@ pub mod get_noti_sizes;
 pub mod set_filter;
 pub mod set_strict;
 
-pub use filter::{BpfInstruction, FilterAction, FilterFlags};
+pub use filter::{FilterAction, FilterFlags};
 
 pub use check_action::{CheckActionError, is_action_available};
 pub use get_noti_sizes::{GetNotificationSizesError, NotificationSizes, get_notification_sizes};
 pub use set_filter::{SetFilterError, SetFilterResult, set_filter};
 pub use set_strict::{SetStrictModeError, set_strict};
+
+use crate::bpf::BpfInstruction;
 
 enum Operation<'a> {
     SetModeStrict,
@@ -57,11 +57,17 @@ impl<'a> From<&Operation<'a>> for c_uint {
 }
 
 /// int syscall(SYS_seccomp, unsigned int operation, unsigned int flags, void *args);
-unsafe fn seccomp_syscall(operation: c_uint, flags: c_uint, args: *mut c_void) -> i64 {
+unsafe fn seccomp_syscall(operation: c_uint, flags: c_uint, args: *mut c_void) -> c_long {
     unsafe { syscall(SYS_seccomp, operation, flags, args) }
 }
 
-fn seccomp(operation: Operation) -> isize {
+#[repr(C)]
+pub(super) struct BpfProgram {
+    pub length: c_ushort,
+    pub bytecode: *const BpfInstruction,
+}
+
+fn seccomp(operation: Operation) -> c_long {
     let op = c_uint::from(&operation);
 
     // All operations except the SECCOMP_SET_MODE_FILTER require the flags to be zero
@@ -78,14 +84,15 @@ fn seccomp(operation: Operation) -> isize {
             // EINVAL is returned if there are no instructions,
             // so we can return an error early
             if bpf_instructions.is_empty() {
-                return EINVAL as isize;
+                return EINVAL as c_long;
             }
 
             let Ok(length) = c_ushort::try_from(bpf_instructions.len()) else {
                 // EINVAL is returned when the number of instructions is more than BPF_MAXINSNS;
                 // if there's an overflow, the number of instructions must be larger than BPF_MAXINSNS,
                 // so we can return an error early
-                return EINVAL as isize;
+                // (if running as root, BPF_COMPLEXITY_LIMIT_INSNS is used instead, but the point still holds)
+                return EINVAL as c_long;
             };
 
             // Casting to a mutable pointer is ok, since the kernel doesn't write into the buffer
@@ -95,14 +102,14 @@ fn seccomp(operation: Operation) -> isize {
             } as *const BpfProgram as *mut c_void
         }
         Operation::CheckActionAvailable(filter_action) => {
-            &filter_action as *const FilterAction as *mut c_void
+            &filter_action.action() as *const u32 as *mut c_void
         }
         Operation::GetNotificationSizes(notification_sizes) => {
             notification_sizes as *mut seccomp_notif_sizes as *mut c_void
         }
     };
 
-    (unsafe { seccomp_syscall(op, flags, args) }) as isize
+    unsafe { seccomp_syscall(op, flags, args) }
 }
 
 #[cfg(test)]
