@@ -6,11 +6,11 @@
 //!
 //! [get_noti_sizes] with [get_notification_sizes], [NotificationSizes] and [GetNotificationSizesError] exported
 //!
-//! [mod@set_filter] with [set_filter::set_filter], [SetFilterResult] and [SetFilterError] exported
+//! [mod@set_filter] with [set_filter::set_filter], [set_filter::set_filter_with_listener] and [SetFilterError] exported
 //!
 //! [mod@set_strict] with [set_strict::set_strict] and [SetStrictModeError] exported
 //!
-//! Also there is a [filter] module with [BpfInstruction], [FilterAction] and [FilterFlags] exported
+//! Also there is a [filter] module with [FilterAction], [FilterFlags] and [FilterWithListenerFlags] exported
 
 use core::ffi::{c_uint, c_void};
 use std::{ffi::c_long, ptr};
@@ -26,19 +26,19 @@ pub mod get_noti_sizes;
 pub mod set_filter;
 pub mod set_strict;
 
-pub use filter::{FilterAction, FilterFlags};
+pub use filter::{FilterAction, FilterFlags, FilterWithListenerFlags};
 
 pub use check_action::{CheckActionError, is_action_available};
 pub use get_noti_sizes::{GetNotificationSizesError, NotificationSizes, get_notification_sizes};
-pub use set_filter::{SetFilterError, SetFilterResult, set_filter};
+pub use set_filter::{SetFilterError, set_filter, set_filter_with_listener};
 pub use set_strict::{SetStrictModeError, set_strict};
 
-use crate::bpf::BpfInstruction;
+use crate::{bpf::BpfInstruction, seccomp::filter::FullFilterFlags};
 
 enum Operation<'a> {
     SetModeStrict,
 
-    SetModeFilter(FilterFlags, &'a [BpfInstruction]),
+    SetModeFilter(FullFilterFlags, &'a [BpfInstruction]),
 
     CheckActionAvailable(FilterAction),
 
@@ -74,7 +74,7 @@ fn seccomp(operation: Operation) -> c_long {
     // FilterFlags::default() returns zero when converted to a c_int
     let flags = c_uint::from(match &operation {
         &Operation::SetModeFilter(flags, _) => flags,
-        _ => FilterFlags::default(),
+        _ => FullFilterFlags::default(),
     });
 
     let args = match operation {
@@ -116,10 +116,10 @@ fn seccomp(operation: Operation) -> c_long {
 mod tests {
     use super::*;
 
-    /// [FilterFlags] default value is used for all operations except the filter one. If it is not zero for these operations, the
+    /// [FullFilterFlags] default value is used for all operations except the filter one. If it is not zero for these operations, the
     /// system call will return an error
     #[test]
     fn verify_default_flags() {
-        assert_eq!(c_uint::from(FilterFlags::default()), 0)
+        assert_eq!(c_uint::from(FullFilterFlags::default()), 0)
     }
 }

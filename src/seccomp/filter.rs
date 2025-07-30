@@ -10,7 +10,7 @@ use libc::{
 
 /// Flags that modify the filter behavior
 #[derive(Default, Clone, Copy)]
-pub struct FilterFlags {
+pub(crate) struct FullFilterFlags {
     /// All filter return actions except SECCOMP_RET_ALLOW should be logged.
     /// An administrator may override this filter flag by preventing specific actions
     /// from being logged via the /proc/sys/kernel/seccomp/actions_logged file.
@@ -45,9 +45,9 @@ pub struct FilterFlags {
     pub no_thread_id_on_sync_error: bool,
 }
 
-impl From<FilterFlags> for c_uint {
-    fn from(value: FilterFlags) -> Self {
-        let FilterFlags {
+impl From<FullFilterFlags> for c_uint {
+    fn from(value: FullFilterFlags) -> Self {
+        let FullFilterFlags {
             log,
             new_listener,
             spec_allow,
@@ -74,6 +74,104 @@ impl From<FilterFlags> for c_uint {
             }
         }
         flags
+    }
+}
+
+/// Flags that modify the filter behavior
+#[derive(Default, Clone, Copy)]
+pub struct FilterFlags {
+    /// All filter return actions except SECCOMP_RET_ALLOW should be logged.
+    /// An administrator may override this filter flag by preventing specific actions
+    /// from being logged via the /proc/sys/kernel/seccomp/actions_logged file.
+    pub log: bool,
+
+    /// Disable Speculative Store Bypass mitigation.
+    pub spec_allow: bool,
+
+    /// When adding a new filter, synchronize all other threads of the calling process to the same seccomp filter tree.
+    /// A "filter tree" is the ordered list of filters attached to a thread.
+    /// (Attaching identical filters in separate seccomp() calls results in different filters from this perspective.)
+    /// If any thread cannot synchronize to the same filter tree, the call will not attach the new seccomp filter,
+    /// and will fail, returning the first thread ID found that cannot synchronize.
+    /// Synchronization will fail if another thread in the same process is in SECCOMP_MODE_STRICT or if it has attached new
+    /// seccomp filters to itself, diverging from the calling thread's filter tree.
+    pub sync_threads: bool,
+
+    /// This flag makes it such that when a user notification is received by the supervisor,
+    /// the notifying process will ignore non-fatal signals until the response is sent.
+    /// Signals that are sent prior to the notification being received by userspace are handled normally.
+    pub ignore_non_fatal_signals: bool,
+
+    /// Return ESRCH instead of a thread id on a thread sync error
+    pub no_thread_id_on_sync_error: bool,
+}
+
+impl From<FilterFlags> for FullFilterFlags {
+    fn from(
+        FilterFlags {
+            log,
+            spec_allow,
+            sync_threads,
+            ignore_non_fatal_signals,
+            no_thread_id_on_sync_error,
+        }: FilterFlags,
+    ) -> Self {
+        Self {
+            log,
+            new_listener: false,
+            spec_allow,
+            sync_threads,
+            ignore_non_fatal_signals,
+            no_thread_id_on_sync_error,
+        }
+    }
+}
+
+/// Flags that modify the filter behavior
+///
+/// You can't set `no_thread_id_on_sync_error` to false, as it's incompatible with the listener creation request
+#[derive(Default, Clone, Copy)]
+pub struct FilterWithListenerFlags {
+    /// All filter return actions except SECCOMP_RET_ALLOW should be logged.
+    /// An administrator may override this filter flag by preventing specific actions
+    /// from being logged via the /proc/sys/kernel/seccomp/actions_logged file.
+    pub log: bool,
+
+    /// Disable Speculative Store Bypass mitigation.
+    pub spec_allow: bool,
+
+    /// When adding a new filter, synchronize all other threads of the calling process to the same seccomp filter tree.
+    /// A "filter tree" is the ordered list of filters attached to a thread.
+    /// (Attaching identical filters in separate seccomp() calls results in different filters from this perspective.)
+    /// If any thread cannot synchronize to the same filter tree, the call will not attach the new seccomp filter,
+    /// and will fail.
+    /// Synchronization will fail if another thread in the same process is in SECCOMP_MODE_STRICT or if it has attached new
+    /// seccomp filters to itself, diverging from the calling thread's filter tree.
+    pub sync_threads: bool,
+
+    /// This flag makes it such that when a user notification is received by the supervisor,
+    /// the notifying process will ignore non-fatal signals until the response is sent.
+    /// Signals that are sent prior to the notification being received by userspace are handled normally.
+    pub ignore_non_fatal_signals: bool,
+}
+
+impl From<FilterWithListenerFlags> for FullFilterFlags {
+    fn from(
+        FilterWithListenerFlags {
+            log,
+            spec_allow,
+            sync_threads,
+            ignore_non_fatal_signals,
+        }: FilterWithListenerFlags,
+    ) -> Self {
+        Self {
+            log,
+            new_listener: true,
+            spec_allow,
+            sync_threads,
+            ignore_non_fatal_signals,
+            no_thread_id_on_sync_error: true,
+        }
     }
 }
 
