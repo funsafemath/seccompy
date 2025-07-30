@@ -1,3 +1,4 @@
 /target
 # not needed for now
-main.rs
+/src/main.rs
+/src/bin

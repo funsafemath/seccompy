@@ -12,7 +12,6 @@ pub(crate) fn errno() -> c_int {
     io::Error::last_os_error().raw_os_error().unwrap()
 }
 
-// maybe I should use the errno crate here? though having only the libc crate in the Cargo.lock feels nice
 pub(crate) fn format_unknown_error(error_code: c_int) -> String {
-    format!("os error {error_code}")
+    format!("{}", io::Error::from_raw_os_error(error_code))
 }

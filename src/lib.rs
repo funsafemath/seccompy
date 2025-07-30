@@ -20,3 +20,5 @@ pub use prctl::{get_no_new_privileges, set_no_new_privileges};
 pub mod bpf;
 
 pub mod seccomp_bpf;
+
+pub use seccomp_bpf::filter::Filter;

@@ -1,18 +1,20 @@
-use libc::EM_X86_64;
+use libc::{EM_X86_64, sock_filter};
 
 pub mod instruction;
 pub mod primitive;
 pub mod statement;
 
-// yes, it uses u8/16/32, not c_uchar/short/int
-#[repr(C)]
-#[derive(Debug)]
-pub struct BpfInstruction {
-    pub opcode: u16,
-    pub jump_offset_if_true: u8,
-    pub jump_offset_if_false: u8,
-    pub data: u32,
-}
+// Not sure if there is any reason to create another struct besides having better field names and the Debug trait
+// // yes, it uses u8/16/32, not c_uchar/short/int
+// #[repr(C)]
+// #[derive(Debug)]
+// pub struct BpfInstruction {
+//     pub opcode: u16,
+//     pub jump_offset_if_true: u8,
+//     pub jump_offset_if_false: u8,
+//     pub data: u32,
+// }
+pub type BpfInstruction = sock_filter;
 
 /// Architecture whose syscall convention was used for the syscall invocation
 ///

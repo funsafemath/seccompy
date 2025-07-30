@@ -75,10 +75,10 @@ impl From<Instruction> for BpfInstruction {
     fn from(value: Instruction) -> Self {
         let (jump_offset_if_true, jump_offset_if_false) = value.jump_offsets();
         Self {
-            opcode: value.opcode(),
-            jump_offset_if_true,
-            jump_offset_if_false,
-            data: value.data(),
+            code: value.opcode(),
+            jt: jump_offset_if_true,
+            jf: jump_offset_if_false,
+            k: value.data(),
         }
     }
 }
