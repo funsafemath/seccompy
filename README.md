@@ -7,6 +7,25 @@ them based on arbitrary rules
 [Seccomp user notifications](https://manpages.debian.org/testing/manpages-dev/seccomp_unotify.2.en.html)
 allow a userspace process to handle the system calls instead of the kernel
 
+For userspace notifications you'll need to pass a descriptor from a target to
+the supervisor. This crate does not provide such functionality; you can do this
+using unix sockets or pidfd_getfd
+
+Also, you may want to check if the descriptor can return new events, i.e. there
+are alive processes that use a given seccomp filter; you should not rely on the
+receive_notification return value. Instead, use a select/poll/epoll/etc... to
+check if/get a notification when a descriptor has reached the EOF, there are
+many crates that have functions for this
+
+Note that seccomp cannot intercept the vDSO system calls (clock_gettime, getcpu,
+gettimeofday, time on x86_64, see the
+[vdso(7)](https://manpages.debian.org/testing/manpages/vdso.7.en.html) for more
+info), as they run in the userspace. If you really want to intercept them, you
+may either disable the vDSO for the entire system, or overwrite the
+AT_SYSINFO_EHDR value in the auxilary vector before any library loads (though
+the kernel memory will remain mapped, and even if you unmap it, the process can
+remap it using the prctl's ARCH_MAP_VDSO_X32/32/64)
+
 # Examples
 
 Strict seccomp:
@@ -74,17 +93,133 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
-Crate state:
+Unotify:
 
-- [x] Seccomp module
-- [x] BPF module
-- [ ] Unotify module
+```rust
+#![feature(unix_socket_ancillary_data)]
+
+use std::{
+    convert::Infallible,
+    error::Error,
+    fs::File,
+    io::{self, IoSlice, Seek, Write},
+    os::unix::net::{AncillaryData, SocketAncillary, UnixStream},
+    process::Command,
+    thread,
+};
+
+use libc::{SYS_getrandom, close};
+use seccompy::{
+    FilterAction, FilterWithListenerFlags, receive_notification, return_syscall,
+    seccomp_bpf::filter::{Filter, FilterArgs},
+    send_response,
+};
+
+fn target(tx: UnixStream) -> Result<(), Box<dyn Error>> {
+    let mut filter = Filter::new(FilterArgs {
+        default_action: FilterAction::Allow,
+        ..Default::default()
+    });
+
+    filter.add_syscall_group(&[SYS_getrandom as u32], FilterAction::UserNotif);
+
+    seccompy::set_no_new_privileges().unwrap();
+
+    let descriptor = seccompy::set_filter_with_listener(
+        FilterWithListenerFlags {
+            ..Default::default()
+        },
+        &filter.compile()?,
+    )?;
+
+    let mut ancillary_buffer = [0; 32];
+    let mut ancillary = SocketAncillary::new(&mut ancillary_buffer[..]);
+    ancillary.add_fds(&[descriptor]);
+
+    // We must send some real data to be able to send ancillary data
+    tx.send_vectored_with_ancillary(&[IoSlice::new(&[0; 1])], &mut ancillary)?;
+
+    // close target's copy of the descriptor (optionally)
+    // also it has the close_on_exec flag
+    unsafe { close(descriptor) };
+
+    let random_number = || {
+        str::from_utf8(
+            &Command::new("python3")
+                .arg("-c")
+                .arg("import random; print(random.randint(1,100))")
+                .output()
+                .unwrap()
+                .stdout,
+        )
+        .unwrap()
+        .trim()
+        .parse::<i32>()
+        .unwrap()
+    };
+
+    let first_random_number = random_number();
+
+    let second_random_number = random_number();
+
+    println!(
+        "First process returned {first_random_number}, second process returned {second_random_number}"
+    );
+
+    assert_eq!(first_random_number, second_random_number);
+
+    Ok(())
+}
+
+fn supervisor(rx: UnixStream) -> Result<Infallible, Box<dyn Error>> {
+    let mut ancillary_buffer = [0; 32];
+    let mut ancillary = SocketAncillary::new(&mut ancillary_buffer[..]);
+
+    rx.recv_vectored_with_ancillary(&mut [], &mut ancillary)?;
+
+    let AncillaryData::ScmRights(mut scm_rights) = ancillary.messages().next().unwrap().unwrap()
+    else {
+        unreachable!()
+    };
+
+    let descriptor = scm_rights.next().unwrap();
+
+    loop {
+        let noti = receive_notification(descriptor)?;
+
+        // Note that writing into the target's memory is never safe:
+        // syscalls can be interrupted, so you can corrupt the target's memory;
+        // the process may be dead, and you'll (really unlikely) write into another process' memory;
+        // you can use the `ignore_non_fatal_signals` flag to exclude the first case
+        let mut memory = File::options()
+            .write(true)
+            .open(format!("/proc/{}/mem", noti.pid))?;
+
+        memory.seek(io::SeekFrom::Start(noti.data.args[0]))?;
+
+        memory.write_all(&b"\0".repeat(noti.data.args[1] as usize))?;
+
+        send_response(descriptor, return_syscall(noti, noti.data.args[1] as i64))?;
+    }
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let (tx, rx) = UnixStream::pair()?;
+
+    let handle = thread::spawn(|| {
+        target(tx).unwrap();
+    });
+
+    // supervisor will eventually return with an error
+    let _ = supervisor(rx).unwrap_err();
+
+    handle.join().unwrap();
+
+    Ok(())
+}
+```
 
 TODO:
 
-- [ ] Examples in the README
-  - [x] Basic seccomp
-  - [x] Filters
-  - [ ] Unotify
 - [ ] Tests
 - [ ] Document all public functions
