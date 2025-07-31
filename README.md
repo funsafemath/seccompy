@@ -42,17 +42,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Allow Rust to exit gracefully
     filter.add_syscall_group(
-        &[SYS_sigaltstack, SYS_munmap, SYS_exit_group].map(|x| x as u32),
+        &[SYS_sigaltstack as u32, SYS_munmap as u32, SYS_exit_group as u32],
         FilterAction::Allow,
     );
 
     // Allow writing to already open descriptors
-    filter.add_syscall_group(&[SYS_write].map(|x| x as u32), FilterAction::Allow);
+    filter.add_syscall_group(&[SYS_write as u32], FilterAction::Allow);
 
     // Return a custom error code for a syscall, even if does not make sense
     // errno 26 is ExecutableFileBusy
     filter.add_syscall_group(
-        &[SYS_openat].map(|x| x as u32),
+        &[SYS_openat as u32],
         FilterAction::Errno { errno: 26 },
     );
 
