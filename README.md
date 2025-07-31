@@ -29,6 +29,51 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
+Filters:
+
+```rust
+use std::{error::Error, fs, io::ErrorKind};
+
+use libc::{SYS_exit_group, SYS_munmap, SYS_openat, SYS_sigaltstack, SYS_write};
+use seccompy::{Filter, FilterAction, FilterArgs, FilterFlags};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut filter = Filter::new(FilterArgs::default());
+
+    // Allow Rust to exit gracefully
+    filter.add_syscall_group(
+        &[SYS_sigaltstack, SYS_munmap, SYS_exit_group].map(|x| x as u32),
+        FilterAction::Allow,
+    );
+
+    // Allow writing to already open descriptors
+    filter.add_syscall_group(&[SYS_write].map(|x| x as u32), FilterAction::Allow);
+
+    // Return a custom error code for a syscall, even if does not make sense
+    // errno 26 is ExecutableFileBusy
+    filter.add_syscall_group(
+        &[SYS_openat].map(|x| x as u32),
+        FilterAction::Errno { errno: 26 },
+    );
+
+    // To set a filter, a thread must have the no_new_privs attribute or the CAP_SYS_ADMIN capability
+    seccompy::set_no_new_privileges()?;
+
+    seccompy::set_filter(FilterFlags::default(), &filter.compile()?)?;
+
+    // Everything is ok, SYS_write is allowed
+    println!("Hi!");
+
+    // Fails with errno 26
+    assert_eq!(
+        fs::File::open("file.txt").unwrap_err().kind(),
+        ErrorKind::ExecutableFileBusy
+    );
+
+    Ok(())
+}
+```
+
 Crate state:
 
 - [x] Seccomp module
@@ -39,7 +84,7 @@ TODO:
 
 - [ ] Examples in the README
   - [x] Basic seccomp
-  - [ ] Filters
+  - [x] Filters
   - [ ] Unotify
 - [ ] Tests
 - [ ] Document all public functions

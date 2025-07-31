@@ -147,7 +147,7 @@ pub fn set_filter(flags: FilterFlags, bpf_code: &[BpfInstruction]) -> Result<(),
 /// Filters allow to implement arbitrary logic for filtering the system calls. There are many different [FilterWithListenerFlags]
 /// and [FilterAction](crate::FilterAction)s that affect what the filter behavior. See their documentation for more info.
 ///
-/// This function will return a descriptor to an event listener. Using it, a userspace process
+/// This function will return an event listener descriptor. Using it, a userspace process
 /// can handle the system calls instead of the kernel or forward them to it.
 /// These may be helpful: [FilterWithListenerFlags::ignore_non_fatal_signals](FilterWithListenerFlags),
 /// [FilterAction::UserNotif](crate::FilterAction::UserNotif)

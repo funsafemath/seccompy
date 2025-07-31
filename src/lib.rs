@@ -23,4 +23,4 @@ pub mod bpf;
 
 pub mod seccomp_bpf;
 
-pub use seccomp_bpf::filter::Filter;
+pub use seccomp_bpf::filter::{Filter, FilterArgs};

@@ -34,21 +34,6 @@ impl Display for VerificationError {
 
 impl Error for VerificationError {}
 
-#[derive(Debug)]
-pub enum AddGroupError {
-    EmptyGroup,
-}
-
-impl Display for AddGroupError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::EmptyGroup => write!(f, "system call group is empty",),
-        }
-    }
-}
-
-impl Error for AddGroupError {}
-
 pub struct FilterArgs {
     pub default_action: FilterAction,
     pub arch: Architecture,
@@ -127,13 +112,13 @@ impl Filter {
         );
     }
 
-    pub fn add_syscall_group(
-        &mut self,
-        syscalls: &[u32],
-        action: FilterAction,
-    ) -> Result<(), AddGroupError> {
+    // TODO: Duplicate syscalls are disallowed, so it's possible merge the groups in the compilation stage
+    // but this may break the filters if non-commutative filtering methods are added
+    // (e.g. filter.add_group(A, action); filter.check_syscall_is_between_1_and_100(); filter.add_group(B, action); won't be the same as
+    // filter.add_group(A | B, action); filter.check_syscall_is_between_1_and_100();)
+    pub fn add_syscall_group(&mut self, syscalls: &[u32], action: FilterAction) {
         if syscalls.is_empty() {
-            return Err(AddGroupError::EmptyGroup);
+            return;
         }
         self.push(statement::load_syscall());
 
@@ -151,7 +136,6 @@ impl Filter {
                 if_or_statement(terms_any, vec![statement::return_action(action)]).unwrap(),
             );
         }
-        Ok(())
     }
 
     fn begin(&mut self) {
