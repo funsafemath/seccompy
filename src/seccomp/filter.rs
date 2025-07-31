@@ -78,7 +78,7 @@ impl From<FullFilterFlags> for c_uint {
 }
 
 /// Flags that modify the filter behavior
-#[derive(Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct FilterFlags {
     /// All filter return actions except SECCOMP_RET_ALLOW should be logged.
     /// An administrator may override this filter flag by preventing specific actions
@@ -97,11 +97,6 @@ pub struct FilterFlags {
     /// seccomp filters to itself, diverging from the calling thread's filter tree.
     pub sync_threads: bool,
 
-    /// This flag makes it such that when a user notification is received by the supervisor,
-    /// the notifying process will ignore non-fatal signals until the response is sent.
-    /// Signals that are sent prior to the notification being received by userspace are handled normally.
-    pub ignore_non_fatal_signals: bool,
-
     /// Return ESRCH instead of a thread id on a thread sync error
     pub no_thread_id_on_sync_error: bool,
 }
@@ -112,7 +107,6 @@ impl From<FilterFlags> for FullFilterFlags {
             log,
             spec_allow,
             sync_threads,
-            ignore_non_fatal_signals,
             no_thread_id_on_sync_error,
         }: FilterFlags,
     ) -> Self {
@@ -121,7 +115,7 @@ impl From<FilterFlags> for FullFilterFlags {
             new_listener: false,
             spec_allow,
             sync_threads,
-            ignore_non_fatal_signals,
+            ignore_non_fatal_signals: false,
             no_thread_id_on_sync_error,
         }
     }
@@ -130,7 +124,7 @@ impl From<FilterFlags> for FullFilterFlags {
 /// Flags that modify the filter behavior
 ///
 /// You can't set `no_thread_id_on_sync_error` to false, as it's incompatible with the listener creation request
-#[derive(Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct FilterWithListenerFlags {
     /// All filter return actions except SECCOMP_RET_ALLOW should be logged.
     /// An administrator may override this filter flag by preventing specific actions
