@@ -24,6 +24,7 @@ pub enum AddDescriptorError {
     /// The blocked system call in the target has been interrupted by a signal handler or the target has terminated.
     Interrupted,
 
+    /// Any error that's generally not returned for a given operation as per the seccomp_unotify(2) manpage
     Unknown(c_int),
 }
 

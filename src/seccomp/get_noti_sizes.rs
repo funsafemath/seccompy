@@ -10,7 +10,7 @@ pub enum GetNotificationSizesError {
     /// operation is unknown or is not supported by this kernel version or configuration.
     GetNotiSizesNotSupported,
 
-    /// Any error that's generally not returned for a given operation as per the syscall(2) manpage
+    /// Any error that's generally not returned for a given operation as per the seccomp(2) manpage
     Unknown(c_int),
 }
 

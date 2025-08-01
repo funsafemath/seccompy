@@ -47,7 +47,7 @@ pub enum SetFilterError {
     /// seccomp filters to itself, diverging from the calling thread's filter tree.
     SyncError(pid_t),
 
-    /// Any error that's generally not returned for a given operation as per the syscall(2) manpage
+    /// Any error that's generally not returned for a given operation as per the seccomp(2) manpage
     Unknown(c_int),
 }
 

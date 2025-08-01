@@ -11,6 +11,7 @@ pub enum ReceiveNotificationError {
     /// or the target's (blocked) system call was interrupted by a signal handler
     Interrupted,
 
+    /// Any error that's generally not returned for a given operation as per the seccomp_unotify(2) manpage
     Unknown(c_int),
 }
 
