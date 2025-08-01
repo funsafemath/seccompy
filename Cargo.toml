@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 keywords = ["seccomp"]
 categories = ["security"]
+description = "Seccomp library with unotify support and without libseccomp dependency"
+license = "Apache-2.0"
 
 [dependencies]
 libc = "0.2.174"
