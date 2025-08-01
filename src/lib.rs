@@ -1,4 +1,5 @@
 #![doc = include_str!("./../README.md")]
+
 mod error;
 
 mod prctl;
@@ -7,7 +8,7 @@ pub mod seccomp;
 
 pub use seccomp::FilterAction;
 
-pub use seccomp::{CheckActionError, is_action_available};
+pub use seccomp::{CheckAvailabilityError, is_action_available};
 pub use seccomp::{
     FilterFlags, FilterWithListenerFlags, SetFilterError, set_filter, set_filter_with_listener,
 };

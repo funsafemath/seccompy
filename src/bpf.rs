@@ -19,13 +19,15 @@ pub type BpfInstruction = sock_filter;
 /// Architecture whose syscall convention was used for the syscall invocation
 ///
 /// Because numbering of system calls varies between architectures and some architectures (e.g., x86-64)
-/// allow user-space code to use the calling conventions of  multi‐ple architectures (and the convention being used may vary over the life of a process that uses execve(2) to execute binaries that employ the different conventions),
+/// allow user-space code to use the calling conventions of multiple architectures
+/// (and the convention being used may vary over the life of a process that uses `execve(2)`
+/// to execute binaries that employ the different conventions),
 /// it is usually necessary to verify the value of the arch field.
 ///
 /// It is strongly recommended to use an allow-list approach whenever possible because such an approach is more robust and simple.
 /// A deny-list will have to be updated whenever a potentially dangerous system call is added
 /// (or a dangerous flag or option if those are deny-listed), and it is often possible to alter the representation
-/// of a value without altering its meaning, leading to a deny-list bypass.  See also Caveats in the seccomp(2) manpage.
+/// of a value without altering its meaning, leading to a deny-list bypass. See also Caveats in the `seccomp(2)` manpage.
 ///
 /// The arch field is not unique for all calling conventions.
 /// The x86-64 ABI and the x32 ABI both use `AUDIT_ARCH_X86_64` as arch, and they run on the same processors.
@@ -37,10 +39,10 @@ pub type BpfInstruction = sock_filter;
 ///
 /// Additionally, kernels prior to Linux 5.4 incorrectly permitted nr in the ranges 512-547
 /// as well as the corresponding non-x32 syscalls `OR`ed with `__X32_SYSCALL_BIT`.
-/// For example, nr == 521 and nr == (101 | `__X32_SYSCALL_BIT`) would result in invocations of ptrace(2)
+/// For example, nr == 521 and nr == (101 | `__X32_SYSCALL_BIT`) would result in invocations of `ptrace(2)`
 /// with potentially confused x32-vs-x86_64 semantics in the kernel.
 /// Policies intended to work on kernels before Linux 5.4 must ensure that they deny or otherwise correctly handle these system calls.
-/// On Linux 5.4 and newer, such system calls will fail with the error ENOSYS, without doing anything.
+/// On Linux 5.4 and newer, such system calls will fail with the error `ENOSYS`, without doing anything.
 #[derive(Debug, Clone, Copy)]
 #[repr(u32)]
 pub enum Architecture {

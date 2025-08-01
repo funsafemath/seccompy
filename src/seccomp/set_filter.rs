@@ -47,7 +47,7 @@ pub enum SetFilterError {
     /// seccomp filters to itself, diverging from the calling thread's filter tree.
     SyncError(pid_t),
 
-    /// Any error that's generally not returned for a given operation as per the seccomp(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp(2)` manpage
     Unknown(c_int),
 }
 
@@ -102,10 +102,10 @@ impl From<c_int> for SetFilterError {
 /// The system calls allowed are defined by a pointer to a Berkeley Packet Filter (BPF) passed via args.
 /// This argument is a pointer to a struct `sock_fprog`;
 /// it can be designed to filter arbitrary system calls and system call arguments.
-/// If the filter is invalid, `seccomp()` fails, returning EINVAL in errno.
+/// If the filter is invalid, `seccomp()` fails, returning `EINVAL` in errno.
 ///
-/// If fork(2) or clone(2) is allowed by the filter, any child processes will be constrained to the same system call filters as the parent.
-/// If execve(2) is allowed, the existing filters will be preserved across a call to execve(2).
+/// If `fork(2)` or `clone(2)` is allowed by the filter, any child processes will be constrained to the same system call filters as the parent.
+/// If `execve(2)` is allowed, the existing filters will be preserved across a call to `execve(2)`.
 ///
 /// In order to use the `SECCOMP_SET_MODE_FILTER` operation, either the calling thread must have the `CAP_SYS_ADMIN` capability in its user namespace,
 /// or the thread must already have the `no_new_privs` bit set. If that bit was not already set by an ancestor of this thread,
@@ -115,14 +115,14 @@ impl From<c_int> for SetFilterError {
 ///     prctl(PR_SET_NO_NEW_PRIVS, 1);
 /// ```
 ///
-/// Otherwise, the `SECCOMP_SET_MODE_FILTER` operation fails and returns EACCES in errno.
+/// Otherwise, the `SECCOMP_SET_MODE_FILTER` operation fails and returns `EACCES` in errno.
 /// This requirement ensures that an unprivileged process cannot apply a malicious filter and then invoke a set-user-ID
-/// or other privileged program using execve(2), thus potentially compromising that program.
-/// (Such a malicious filter might, for example, cause an attempt to use setuid(2) to set the caller's user IDs to nonzero values
+/// or other privileged program using `execve(2)`, thus potentially compromising that program.
+/// (Such a malicious filter might, for example, cause an attempt to use `setuid(2)` to set the caller's user IDs to nonzero values
 /// to instead return 0 without actually making the system call. Thus, the program might be tricked into retaining superuser privileges
 /// in circumstances where it is possible to influence it to do dangerous things because it did not actually drop privileges.)
 ///
-/// If prctl(2) or `seccomp()` is allowed by the attached filter, further filters may be added.
+/// If `prctl(2)` or `seccomp()` is allowed by the attached filter, further filters may be added.
 /// This will increase evaluation time, but allows for further reduction of the attack surface during execution of a thread.
 ///
 /// The `SECCOMP_SET_MODE_FILTER` operation is available only if the kernel is configured with `CONFIG_SECCOMP_FILTER` enabled.
@@ -169,14 +169,14 @@ pub fn set_filter(flags: FilterFlags, bpf_code: &[BpfInstruction]) -> Result<(),
 ///     prctl(PR_SET_NO_NEW_PRIVS, 1);
 /// ```
 ///
-/// Otherwise, the `SECCOMP_SET_MODE_FILTER` operation fails and returns EACCES in errno.
+/// Otherwise, the `SECCOMP_SET_MODE_FILTER` operation fails and returns `EACCES` in errno.
 /// This requirement ensures that an unprivileged process cannot apply a malicious filter and then invoke a set-user-ID
-/// or other privileged program using execve(2), thus potentially compromising that program.
-/// (Such a malicious filter might, for example, cause an attempt to use setuid(2) to set the caller's user IDs to nonzero values
+/// or other privileged program using `execve(2)`, thus potentially compromising that program.
+/// (Such a malicious filter might, for example, cause an attempt to use `setuid(2)` to set the caller's user IDs to nonzero values
 /// to instead return 0 without actually making the system call. Thus, the program might be tricked into retaining superuser privileges
 /// in circumstances where it is possible to influence it to do dangerous things because it did not actually drop privileges.)
 ///
-/// If prctl(2) or `seccomp()` is allowed by the attached filter, further filters may be added.
+/// If `prctl(2)` or `seccomp()` is allowed by the attached filter, further filters may be added.
 /// This will increase evaluation time, but allows for further reduction of the attack surface during execution of a thread.
 ///
 /// The `SECCOMP_SET_MODE_FILTER` operation is available only if the kernel is configured with `CONFIG_SECCOMP_FILTER` enabled.

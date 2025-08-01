@@ -9,10 +9,10 @@ use crate::seccomp::{Operation, seccomp};
 pub enum SetStrictModeError {
     /// A secure computing mode has already been set, and operation differs from the existing setting.
     ///
-    /// operation is unknown or is not supported by this kernel version or configuration.
+    /// Strict seccomp mode is not supported by this kernel version or configuration.
     ConflictingModeOrUnsupported,
 
-    /// Any error that's generally not returned for a given operation as per the seccomp(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp(2)` manpage
     Unknown(c_int),
 }
 

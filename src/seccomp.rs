@@ -2,7 +2,7 @@
 //!
 //! seccomp has 4 operations, and for each of them this module has a submodule:
 //!
-//! [`check_action`] with [`is_action_available`] and [`CheckActionError`] exported
+//! [`check_availability`] with [`is_action_available`] and [`CheckAvailabilityError`] exported
 //!
 //! [`get_noti_sizes`] with [`get_notification_sizes`], [`NotificationSizes`] and [`GetNotificationSizesError`] exported
 //!
@@ -20,7 +20,7 @@ use libc::{
     SECCOMP_SET_MODE_STRICT, SYS_seccomp, c_ushort, seccomp_notif_sizes, sock_fprog, syscall,
 };
 
-pub mod check_action;
+pub mod check_availability;
 pub mod filter;
 pub mod get_noti_sizes;
 pub mod set_filter;
@@ -28,7 +28,7 @@ pub mod set_strict;
 
 pub use filter::{FilterAction, FilterFlags, FilterWithListenerFlags};
 
-pub use check_action::{CheckActionError, is_action_available};
+pub use check_availability::{CheckAvailabilityError, is_action_available};
 pub use get_noti_sizes::{GetNotificationSizesError, NotificationSizes, get_notification_sizes};
 pub use set_filter::{SetFilterError, set_filter, set_filter_with_listener};
 pub use set_strict::{SetStrictModeError, set_strict};

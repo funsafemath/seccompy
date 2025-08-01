@@ -6,18 +6,18 @@ use libc::{EINVAL, EOPNOTSUPP};
 use crate::seccomp::{Operation, filter::FilterAction, seccomp};
 
 #[derive(Debug)]
-pub enum CheckActionError {
-    /// operation is unknown or is not supported by this kernel version or configuration.
+pub enum CheckAvailabilityError {
+    /// Availability check is not supported by this kernel version or configuration
     CheckNotSupported,
 
-    /// Any error that's generally not returned for a given operation as per the seccomp(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp(2)` manpage
     Unknown(c_int),
 }
 
-impl Display for CheckActionError {
+impl Display for CheckAvailabilityError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::CheckNotSupported => write!(f, "check action operation not supported"),
+            Self::CheckNotSupported => write!(f, "check availability operation not supported"),
             Self::Unknown(error_code) => {
                 write!(f, "{}", crate::error::format_unknown_error(*error_code))
             }
@@ -25,7 +25,7 @@ impl Display for CheckActionError {
     }
 }
 
-impl Error for CheckActionError {}
+impl Error for CheckAvailabilityError {}
 
 /// Check if a given [`FilterAction`] is supported by the kernel
 ///
@@ -50,13 +50,13 @@ impl Error for CheckActionError {}
 ///     println!("Failed to check if {action:?} if available: {is_user_notif_available:?}");
 /// }
 /// ```
-pub fn is_action_available(filter_action: FilterAction) -> Result<bool, CheckActionError> {
+pub fn is_action_available(filter_action: FilterAction) -> Result<bool, CheckAvailabilityError> {
     match seccomp(Operation::CheckActionAvailable(filter_action)) {
         0 => Ok(true),
         -1 => match crate::error::errno() {
             EOPNOTSUPP => Ok(false),
-            EINVAL => Err(CheckActionError::CheckNotSupported),
-            other => Err(CheckActionError::Unknown(other)),
+            EINVAL => Err(CheckAvailabilityError::CheckNotSupported),
+            other => Err(CheckAvailabilityError::Unknown(other)),
         },
 
         // For non-filter operations the return value is always 0 or -1

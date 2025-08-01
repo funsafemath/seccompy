@@ -11,16 +11,16 @@ use libc::{
 /// Flags that modify the filter behavior
 #[derive(Default, Clone, Copy)]
 pub(crate) struct FullFilterFlags {
-    /// All filter return actions except SECCOMP_RET_ALLOW should be logged.
+    /// All filter return actions except `SECCOMP_RET_ALLOW` should be logged.
     /// An administrator may override this filter flag by preventing specific actions
-    /// from being logged via the /proc/sys/kernel/seccomp/actions_logged file.
+    /// from being logged via the `/proc/sys/kernel/seccomp/actions_logged` file.
     pub log: bool,
 
     /// After successfully installing the filter program, return a new user-space notification file descriptor.
-    /// (The close-on-exec flag is set for the file descriptor.)
-    /// When the filter returns SECCOMP_RET_USER_NOTIF a notification will be sent to this file descriptor.
-    /// At most one seccomp filter using the SECCOMP_FILTER_FLAG_NEW_LISTENER flag can be installed for a thread.
-    /// See seccomp_unotify(2) for further details.
+    /// (The `close-on-exec` flag is set for the file descriptor.)
+    /// When the filter returns `SECCOMP_RET_USER_NOTIF` a notification will be sent to this file descriptor.
+    /// At most one seccomp filter using the `SECCOMP_FILTER_FLAG_NEW_LISTENER` flag can be installed for a thread.
+    /// See `seccomp_unotify(2)` for further details.
     pub new_listener: bool,
 
     /// Disable Speculative Store Bypass mitigation.
@@ -28,10 +28,10 @@ pub(crate) struct FullFilterFlags {
 
     /// When adding a new filter, synchronize all other threads of the calling process to the same seccomp filter tree.
     /// A "filter tree" is the ordered list of filters attached to a thread.
-    /// (Attaching identical filters in separate seccomp() calls results in different filters from this perspective.)
+    /// (Attaching identical filters in separate `seccomp()` calls results in different filters from this perspective.)
     /// If any thread cannot synchronize to the same filter tree, the call will not attach the new seccomp filter,
     /// and will fail, returning the first thread ID found that cannot synchronize.
-    /// Synchronization will fail if another thread in the same process is in SECCOMP_MODE_STRICT or if it has attached new
+    /// Synchronization will fail if another thread in the same process is in `SECCOMP_MODE_STRICT` or if it has attached new
     /// seccomp filters to itself, diverging from the calling thread's filter tree.
     pub sync_threads: bool,
 
@@ -40,8 +40,8 @@ pub(crate) struct FullFilterFlags {
     /// Signals that are sent prior to the notification being received by userspace are handled normally.
     pub ignore_non_fatal_signals: bool,
 
-    /// Return ESRCH instead of a thread id on a thread sync error
-    /// to avoid conflicts with a returned file descriptor if SECCOMP_FILTER_FLAG_NEW_LISTENER is set
+    /// Return `ESRCH` instead of a thread id on a thread sync error
+    /// to avoid conflicts with a returned file descriptor if `SECCOMP_FILTER_FLAG_NEW_LISTENER` is set
     pub no_thread_id_on_sync_error: bool,
 }
 
@@ -233,7 +233,7 @@ pub enum FilterAction {
 
     /// Forward the system call to an attached user-space supervisor process to allow that process to decide what to do with the system call.
     /// If there is no attached supervisor (either because the filter was not installed with the `SECCOMP_FILTER_FLAG_NEW_LISTENER` flag
-    /// or because the file descriptor was closed), the filter returns ENOSYS (similar to what happens when a filter returns
+    /// or because the file descriptor was closed), the filter returns `ENOSYS` (similar to what happens when a filter returns
     /// `SECCOMP_RET_TRACE` and there is no tracer). See `seccomp_unotify(2)` for further details.
     ///
     /// Note that the supervisor process will not be notified if another filter returns an action value
@@ -257,7 +257,7 @@ pub enum FilterAction {
     ///
     /// Before Linux 4.8, the seccomp check will not be run again after the tracer is notified.
     /// (This means that, on older kernels,
-    /// seccomp-based sandboxes must not allow use of ptrace(2)—even of other sandboxed processes—without extreme care;
+    /// seccomp-based sandboxes must not allow use of `ptrace(2)`—even of other sandboxed processes—without extreme care;
     /// ptracers can use this mechanism to escape from the seccomp sandbox.)
     ///
     /// Note that a tracer process will not be notified if another filter returns an action value

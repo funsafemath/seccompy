@@ -27,7 +27,7 @@ impl Error for CheckValidityError {}
 ///
 /// Returns false if the target has died or the system call was interrupted by a signal
 ///
-/// To make the target ignore all signals, except for SIGKILL, until the supervisor returns, use
+/// To make the target ignore all signals, except for `SIGKILL`, until the supervisor returns, use
 /// [`FilterWithListenerFlags::ignore_non_fatal_signals`](crate::FilterWithListenerFlags)
 pub fn check_validity(
     descriptor: i32,

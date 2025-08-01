@@ -124,8 +124,7 @@ pub fn if_or_statement(
     // except if it's the last one -- in that case we need to jump m instructions to skip the body
     //
     // If the `terms_any` vec is empty, return an error, though logically the body should've been skipped, as the or(empty set) is
-    // vacuously false, but there's basically no reason have empty `or` statements, they count towards the ix limit, and an
-    // error may catch some bugs early
+    // vacuously false, but there's basically no reason have empty `or` statements, and an error may catch some bugs early
     if terms_any.is_empty() {
         return Err(StatementError::EmptyCondition);
     }

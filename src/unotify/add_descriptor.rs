@@ -67,7 +67,7 @@ pub struct AddDescriptorOptions {
     /// If allocating the file descriptor in the target fails, the target's system call continues to be blocked until a successful response is sent.
     pub add_and_respond: bool,
 
-    /// Set the close-on-exec flag on the received file descriptor.
+    /// Set the `close-on-exec` flag on the received file descriptor.
     pub set_descriptor_close_on_exec: bool,
 }
 

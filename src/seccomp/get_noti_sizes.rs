@@ -7,7 +7,7 @@ use crate::seccomp::{Operation, seccomp};
 
 #[derive(Debug)]
 pub enum GetNotificationSizesError {
-    /// operation is unknown or is not supported by this kernel version or configuration.
+    /// Getting notification sizes is not supported by this kernel version or configuration
     GetNotiSizesNotSupported,
 
     /// Any error that's generally not returned for a given operation as per the seccomp(2) manpage
