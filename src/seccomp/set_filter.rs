@@ -24,7 +24,7 @@ pub enum SetFilterError {
 
     /// operation is unknown or is not supported by this kernel version or configuration.
     ///
-    /// operation included `BPF_ABS`, but the specified offset was not aligned to a 32-bit boundary or exceeded sizeof(struct `seccomp_data`).
+    /// operation included `BPF_ABS`, but the specified offset was not aligned to a 32-bit boundary or exceeded `sizeof(struct seccomp_data)`.
     ///
     /// A secure computing mode has already been set, and operation differs from the existing setting.
     ///

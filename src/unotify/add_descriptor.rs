@@ -60,7 +60,7 @@ pub struct AddDescriptorOptions {
     /// When allocating the file descriptor in the target, use the file descriptor number specified in the newfd field.
     pub target_descriptor_number: Option<c_int>,
 
-    /// Perform the equivalent of `SECCOMP_IOCTL_NOTIF_ADDFD` plu`SECCOMP_IOCTL_NOTIF_SEND`ND as an atomic operation.
+    /// Perform the equivalent of `SECCOMP_IOCTL_NOTIF_ADDFD` plus `SECCOMP_IOCTL_NOTIF_SEND` as an atomic operation.
     /// On successful invocation, the target process's errno will be 0
     /// and the return value will be the file descriptor number that was allocated in the target.
     ///
