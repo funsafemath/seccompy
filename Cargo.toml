@@ -6,6 +6,7 @@ keywords = ["seccomp"]
 categories = ["security"]
 description = "Seccomp library with unotify support and without libseccomp dependency"
 license = "Apache-2.0"
+repository = "https://github.com/funsafemath/seccompy"
 
 [dependencies]
 libc = "0.2.174"
