@@ -11,7 +11,7 @@ pub enum ReceiveNotificationError {
     /// or the target's (blocked) system call was interrupted by a signal handler
     Interrupted,
 
-    /// Any error that's generally not returned for a given operation as per the seccomp_unotify(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp_unotify(2)` manpage
     Unknown(c_int),
 }
 
@@ -30,7 +30,7 @@ impl Display for ReceiveNotificationError {
 
 impl Error for ReceiveNotificationError {}
 
-/// Receive a SeccompNotif event
+/// Receive a `SeccompNotif` event
 ///
 /// If no such event is currently pending, the operation blocks until an event occurs.
 pub fn receive_notification(descriptor: c_int) -> Result<SeccompNotif, ReceiveNotificationError> {
@@ -50,7 +50,7 @@ pub fn receive_notification(descriptor: c_int) -> Result<SeccompNotif, ReceiveNo
         libc::ioctl(
             descriptor,
             UnotifyOperation::ReceiveNotification as u64,
-            &mut notification as *mut _,
+            &raw mut notification,
         )
     } {
         0 => Ok(notification),

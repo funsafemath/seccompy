@@ -17,21 +17,21 @@ pub enum StatementError {
 impl Display for StatementError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            StatementError::TooLargeBody(size) => {
+            Self::TooLargeBody(size) => {
                 write!(
                     f,
                     "body contained {size} instructions, which is more than the maximum of {}",
                     u8::MAX
                 )
             }
-            StatementError::TooLargeCondition(size) => {
+            Self::TooLargeCondition(size) => {
                 write!(
                     f,
                     "condition contained {size} instructions, which is more than the maximum of {}",
-                    (u8::MAX as u16) + 1
+                    u16::from(u8::MAX) + 1
                 )
             }
-            StatementError::EmptyCondition => write!(f, "condition cannot be empty"),
+            Self::EmptyCondition => write!(f, "condition cannot be empty"),
         }
     }
 }

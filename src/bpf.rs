@@ -28,16 +28,16 @@ pub type BpfInstruction = sock_filter;
 /// of a value without altering its meaning, leading to a deny-list bypass.  See also Caveats in the seccomp(2) manpage.
 ///
 /// The arch field is not unique for all calling conventions.
-/// The x86-64 ABI and the x32 ABI both use AUDIT_ARCH_X86_64 as arch, and they run on the same processors.
-/// Instead, the mask __X32_SYSCALL_BIT is used on the system call number to tell the two ABIs apart.
+/// The x86-64 ABI and the x32 ABI both use `AUDIT_ARCH_X86_64` as arch, and they run on the same processors.
+/// Instead, the mask `__X32_SYSCALL_BIT` is used on the system call number to tell the two ABIs apart.
 ///
-/// This means that a policy must either deny all syscalls with __X32_SYSCALL_BIT or it must recognize syscalls with and without
-/// __X32_SYSCALL_BIT set. A list of system calls to be denied based on nr that does not
-/// also contain nr values with __X32_SYSCALL_BIT set can be bypassed by a malicious program that sets __X32_SYSCALL_BIT.
+/// This means that a policy must either deny all syscalls with `__X32_SYSCALL_BIT` or it must recognize syscalls with and without
+/// `__X32_SYSCALL_BIT` set. A list of system calls to be denied based on nr that does not
+/// also contain nr values with `__X32_SYSCALL_BIT` set can be bypassed by a malicious program that sets `__X32_SYSCALL_BIT`.
 ///
 /// Additionally, kernels prior to Linux 5.4 incorrectly permitted nr in the ranges 512-547
-/// as well as the corresponding non-x32 syscalls ORed with __X32_SYSCALL_BIT.
-/// For example, nr == 521 and nr == (101 | __X32_SYSCALL_BIT) would result in invocations of ptrace(2)
+/// as well as the corresponding non-x32 syscalls `OR`ed with `__X32_SYSCALL_BIT`.
+/// For example, nr == 521 and nr == (101 | `__X32_SYSCALL_BIT`) would result in invocations of ptrace(2)
 /// with potentially confused x32-vs-x86_64 semantics in the kernel.
 /// Policies intended to work on kernels before Linux 5.4 must ensure that they deny or otherwise correctly handle these system calls.
 /// On Linux 5.4 and newer, such system calls will fail with the error ENOSYS, without doing anything.
@@ -51,13 +51,13 @@ pub enum Architecture {
 }
 
 impl Architecture {
-    const ARCH_64_BIT: u32 = 0x80000000;
-    const ARCH_32_LE: u32 = 0x40000000;
+    const ARCH_64_BIT: u32 = 0x8000_0000;
+    const ARCH_32_LE: u32 = 0x4000_0000;
 
-    /// Get the architecture during the compile time
+    /// Get the compile time architecture
     pub fn compile_time_arch() -> Self {
         match std::env::consts::ARCH {
-            "x86_64" => Architecture::X86_64,
+            "x86_64" => Self::X86_64,
             _ => unimplemented!(),
         }
     }

@@ -27,7 +27,7 @@ pub enum AddressingMode {
     ProgramInput = BPF_ABS as u16,
 }
 
-/// The BPF_H and BPF_B size modifiers are not supported by the seccomp: all operations must load and store (4-byte) words (BPF_W).
+/// The `BPF_H` and `BPF_B` size modifiers are not supported by the seccomp: all operations must load and store (4-byte) words (`BPF_W`).
 #[derive(Debug, Clone, Copy)]
 #[repr(u16)]
 pub enum Size {

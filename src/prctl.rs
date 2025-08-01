@@ -1,4 +1,4 @@
-//! A module that provides functions to get/set no_new_privs attribute that is required to set up the filters without CAP_SYS_ADMIN
+//! A module that provides functions to get/set `no_new_privs` attribute that is required to set up the filters without `CAP_SYS_ADMIN`
 
 use core::ffi::c_long;
 use std::{error::Error, fmt::Display};
@@ -20,7 +20,7 @@ impl Display for ProcessControlError {
 
 impl Error for ProcessControlError {}
 
-/// Set the no_new_privs attribute of the calling thread
+/// Set the `no_new_privs` attribute of the calling thread
 pub fn set_no_new_privileges() -> Result<(), ProcessControlError> {
     match unsafe {
         prctl(
@@ -40,7 +40,7 @@ pub fn set_no_new_privileges() -> Result<(), ProcessControlError> {
     }
 }
 
-/// Get the no_new_privs attribute of the calling thread
+/// Get the `no_new_privs` attribute of the calling thread
 pub fn get_no_new_privileges() -> Result<bool, ProcessControlError> {
     match unsafe {
         prctl(

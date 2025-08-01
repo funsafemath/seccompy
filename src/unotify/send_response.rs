@@ -10,7 +10,7 @@ pub enum SendResponseError {
     /// The blocked system call in the target has been interrupted by a signal handler or the target has terminated.
     Interrupted,
 
-    /// Any error that's generally not returned for a given operation as per the seccomp_unotify(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp_unotify(2)` manpage
     Unknown(c_int),
     // there are also EINPROGRESS and EINVAL errors, but they can't happen in the current implementation
 }
@@ -39,7 +39,7 @@ pub fn send_response(
             descriptor,
             UnotifyOperation::Respond as u64,
             // Kernel only copies the data, so a const pointer is ok
-            &response as *const _,
+            &raw const response,
         )
     } {
         0 => Ok(()),
@@ -54,9 +54,9 @@ pub fn send_response(
 /// Continue the system call
 ///
 /// Note that this function CAN NOT be used to implement a security policy, as it does not have protection against TOCTOU attacks.
-/// See the seccomp_unotify(2) manpage for more details
+/// See the `seccomp_unotify(2)` manpage for more details
 #[must_use]
-pub fn continue_syscall(notification: SeccompNotif) -> SeccompNotifResponse {
+pub const fn continue_syscall(notification: SeccompNotif) -> SeccompNotifResponse {
     // A response to the kernel telling it to execute the target's system call. In this case, the flags field includes
     // SECCOMP_USER_NOTIF_FLAG_CONTINUE and the error and val fields must be zero.
     SeccompNotifResponse {
@@ -85,7 +85,7 @@ pub fn continue_syscall(notification: SeccompNotif) -> SeccompNotifResponse {
 
 /// Set the target's system call return value
 #[must_use]
-pub fn return_syscall(notification: SeccompNotif, value: i64) -> SeccompNotifResponse {
+pub const fn return_syscall(notification: SeccompNotif, value: i64) -> SeccompNotifResponse {
     SeccompNotifResponse {
         id: notification.id,
         val: value,
@@ -98,13 +98,13 @@ pub fn return_syscall(notification: SeccompNotif, value: i64) -> SeccompNotifRes
 ///
 /// This function uses u16 for now: `error_code` must not be negative, using u32 may lead to overflows,
 /// and returning an option is not convenient.
-/// Also u16 should be enough for, like, every error code, and if it's not, you can use the [return_syscall]
+/// Also u16 should be enough for, like, every error code, and if it's not, you can use the [`return_syscall`]
 #[must_use]
 pub fn fail_syscall(notification: SeccompNotif, error_code: u16) -> SeccompNotifResponse {
     SeccompNotifResponse {
         id: notification.id,
         val: 0,
-        error: -(error_code as i32),
+        error: -i32::from(error_code),
         flags: 0,
     }
 }

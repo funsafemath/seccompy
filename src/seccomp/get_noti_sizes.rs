@@ -17,10 +17,10 @@ pub enum GetNotificationSizesError {
 impl Display for GetNotificationSizesError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GetNotificationSizesError::GetNotiSizesNotSupported => {
+            Self::GetNotiSizesNotSupported => {
                 write!(f, "get notification sizes operation not supported")
             }
-            GetNotificationSizesError::Unknown(error_code) => {
+            Self::Unknown(error_code) => {
                 write!(f, "{}", crate::error::format_unknown_error(*error_code))
             }
         }
@@ -36,9 +36,9 @@ pub struct NotificationSizes {
     pub seccomp_data_size: usize,
 }
 
-/// Get an initialized [NotificationSizes] struct
+/// Get an initialized [`NotificationSizes`] struct
 ///
-/// [NotificationSizes] struct contains the sizes of the seccomp SECCOMP_RET_USER_NOTIF notification, notification response and data.
+/// [`NotificationSizes`] struct contains the sizes of the seccomp `SECCOMP_RET_USER_NOTIF` notification, notification response and data.
 /// These sizes have little use, and it's easier to get these parameters from the libc crate, but this function is implemented for completeness.
 ///
 /// # Examples
@@ -54,7 +54,7 @@ pub struct NotificationSizes {
 /// Get the sizes of the seccomp user-space notification structures.  Since these structures may evolve and grow over time, this command can be used to determine
 /// how much memory to allocate for sending and receiving notifications.
 ///
-/// The value of flags must be 0, and args must be a pointer to a struct seccomp_notif_sizes, which has the following form:
+/// The value of flags must be 0, and args must be a pointer to a struct `seccomp_notif_sizes`, which has the following form:
 ///
 /// ```c
 /// struct seccomp_notif_sizes {
@@ -63,7 +63,7 @@ pub struct NotificationSizes {
 ///     __u16 seccomp_data;       /* Size of 'struct seccomp_data' */
 /// };
 /// ```
-/// See seccomp_unotify(2) for further details.
+/// See `seccomp_unotify(2)` for further details.
 pub fn get_notification_sizes() -> Result<NotificationSizes, GetNotificationSizesError> {
     let mut notif_sizes = seccomp_notif_sizes {
         seccomp_notif: 0,

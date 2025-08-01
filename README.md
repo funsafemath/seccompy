@@ -221,5 +221,5 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 TODO:
 
-- [ ] Tests
+- [ ] More tests
 - [ ] Document all public functions

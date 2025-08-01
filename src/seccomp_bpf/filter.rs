@@ -44,7 +44,7 @@ pub struct FilterArgs {
 /// Default action: killing the thread,
 /// Default arch: compile-time arch,
 /// Default arch mismatch action: killing the thread,
-/// Default max instruction count: the BPF_MAXINSNS, which is the limit for non-CAP_SYS_ADMIN processes (threads, actually)
+/// Default max instruction count: the `BPF_MAXINSNS`, which is the limit for non-CAP_SYS_ADMIN processes (threads, actually)
 impl Default for FilterArgs {
     fn default() -> Self {
         Self {
@@ -56,9 +56,10 @@ impl Default for FilterArgs {
     }
 }
 
-/// A structure that helps to build a syscall filter BPF bytecode for the [seccomp::set_filter](crate::seccomp::set_filter::set_filter) function
-/// Be sure to read the [Architecture] docs: a x86_64 program may call the x86 syscalls,
-/// so you need to either explicitly disable them by checking if the X32_SYSCALL_BIT bit is set, or implement them,
+/// A structure that helps to build a syscall filter BPF bytecode for the [`seccomp::set_filter`](crate::seccomp::set_filter::set_filter) function
+///
+/// Be sure to read the [`Architecture`] docs: an x86_64 program may call the x86 syscalls,
+/// so you need to either explicitly disable them by checking if the `X32_SYSCALL_BIT` bit is set, or implement them,
 /// or, better off, not make a denylist
 pub struct Filter {
     default_action: FilterAction,
@@ -168,12 +169,16 @@ impl Filter {
 
         self.verify()?;
 
-        Ok(self.instructions.into_iter().map(|x| x.into()).collect())
+        Ok(self
+            .instructions
+            .into_iter()
+            .map(BpfInstruction::from)
+            .collect())
     }
 }
 
 impl Default for Filter {
     fn default() -> Self {
-        Self::new(Default::default())
+        Self::new(FilterArgs::default())
     }
 }

@@ -7,7 +7,7 @@ use crate::unotify::{SeccompNotif, UnotifyOperation};
 
 #[derive(Debug)]
 pub enum CheckValidityError {
-    /// Any error that's generally not returned for a given operation as per the seccomp_unotify(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp_unotify(2)` manpage
     Unknown(c_int),
 }
 
@@ -28,7 +28,7 @@ impl Error for CheckValidityError {}
 /// Returns false if the target has died or the system call was interrupted by a signal
 ///
 /// To make the target ignore all signals, except for SIGKILL, until the supervisor returns, use
-/// [FilterWithListenerFlags::ignore_non_fatal_signals](crate::FilterWithListenerFlags)
+/// [`FilterWithListenerFlags::ignore_non_fatal_signals`](crate::FilterWithListenerFlags)
 pub fn check_validity(
     descriptor: i32,
     notification: &SeccompNotif,
@@ -38,7 +38,7 @@ pub fn check_validity(
             descriptor,
             UnotifyOperation::CheckValidity as u64,
             // Kernel only copies the data, so a const pointer is ok
-            &notification.id as *const u64,
+            &raw const notification.id,
         )
     } {
         0 => Ok(true),

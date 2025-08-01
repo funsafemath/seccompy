@@ -28,32 +28,32 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    fn instruction_type(&self) -> InstructionType {
+    const fn instruction_type(&self) -> InstructionType {
         match self {
-            Instruction::LoadAccumulator { .. } => InstructionType::LoadAccumulator,
-            Instruction::Jump { .. } => InstructionType::Jump,
-            Instruction::Return { .. } => InstructionType::Return,
+            Self::LoadAccumulator { .. } => InstructionType::LoadAccumulator,
+            Self::Jump { .. } => InstructionType::Jump,
+            Self::Return { .. } => InstructionType::Return,
         }
     }
 
-    fn opcode(&self) -> u16 {
+    const fn opcode(&self) -> u16 {
         self.instruction_type() as u16
             | match self {
-                Instruction::LoadAccumulator {
+                Self::LoadAccumulator {
                     addressing_mode,
                     size,
                     ..
                 } => *addressing_mode as u16 | *size as u16,
-                Instruction::Jump {
+                Self::Jump {
                     condition, operand, ..
                 } => *condition as u16 | *operand as u16,
-                Instruction::Return { return_value, .. } => *return_value as u16,
+                Self::Return { return_value, .. } => *return_value as u16,
             }
     }
 
-    fn jump_offsets(&self) -> (u8, u8) {
+    const fn jump_offsets(&self) -> (u8, u8) {
         match self {
-            Instruction::Jump {
+            Self::Jump {
                 jump_offset_if_true: offset_true,
                 jump_offset_if_false: offset_false,
                 ..
@@ -62,11 +62,11 @@ impl Instruction {
         }
     }
 
-    fn data(&self) -> u32 {
+    const fn data(&self) -> u32 {
         *match self {
-            Instruction::LoadAccumulator { data, .. } => data,
-            Instruction::Jump { data, .. } => data,
-            Instruction::Return { data, .. } => data,
+            Self::LoadAccumulator { data, .. }
+            | Self::Jump { data, .. }
+            | Self::Return { data, .. } => data,
         }
     }
 }

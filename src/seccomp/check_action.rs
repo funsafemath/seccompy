@@ -27,12 +27,12 @@ impl Display for CheckActionError {
 
 impl Error for CheckActionError {}
 
-/// Check if a given [FilterAction] is supported by the kernel
+/// Check if a given [`FilterAction`] is supported by the kernel
 ///
 /// Returns true if it is supported, otherwise returns false.
 ///
 /// This operation is helpful to confirm that the kernel knows of a more recently added filter return action
-/// since the kernel treats all unknown actions as SECCOMP_RET_KILL_PROCESS.
+/// since the kernel treats all unknown actions as `SECCOMP_RET_KILL_PROCESS`.
 ///
 /// Available since since Linux 4.14
 ///
@@ -78,7 +78,7 @@ mod tests {
         ];
 
         for action in actions {
-            assert!(is_action_available(*action).unwrap())
+            assert!(is_action_available(*action).unwrap());
         }
     }
 }

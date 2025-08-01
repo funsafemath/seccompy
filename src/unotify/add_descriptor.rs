@@ -11,39 +11,39 @@ use crate::unotify::{SeccompNotif, SeccompNotifAddDescriptor, UnotifyOperation};
 pub enum AddDescriptorError {
     /// The provided source descriptor was invalid
     ///
-    /// Allocating the file descriptor in the target would cause the target's RLIMIT_NOFILE limit to be exceeded (see getrlimit(2))
+    /// Allocating the file descriptor in the target would cause the target's `RLIMIT_NOFILE` limit to be exceeded (see getrlimit(2))
     InvalidSourceOrTargetDescriptor,
 
-    /// If the flag SECCOMP_IOCTL_NOTIF_SEND is used,
-    /// this means the operation can't proceed until other SECCOMP_IOCTL_NOTIF_ADDFD requests are processed
+    /// If the flag `SECCOMP_IOCTL_NOTIF_SEND` is used,
+    /// this means the operation can't proceed until other `SECCOMP_IOCTL_NOTIF_ADDFD` requests are processed
     AddDescriptorQueueNotEmpty,
 
-    /// The file descriptor number specified in newfd exceeds the limit specified in /proc/sys/fs/nr_open
+    /// The file descriptor number specified in newfd exceeds the limit specified in `/proc/sys/fs/nr_open`
     InvalidTargetDescriptor,
 
     /// The blocked system call in the target has been interrupted by a signal handler or the target has terminated.
     Interrupted,
 
-    /// Any error that's generally not returned for a given operation as per the seccomp_unotify(2) manpage
+    /// Any error that's generally not returned for a given operation as per the `seccomp_unotify(2)` manpage
     Unknown(c_int),
 }
 
 impl Display for AddDescriptorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AddDescriptorError::InvalidSourceOrTargetDescriptor => write!(
+            Self::InvalidSourceOrTargetDescriptor => write!(
                 f,
                 "allocating a new descriptor would cause the target descriptor limit to be exceeded"
             ),
-            AddDescriptorError::AddDescriptorQueueNotEmpty => write!(
+            Self::AddDescriptorQueueNotEmpty => write!(
                 f,
                 "cannot send an atomic add_descriptor_to_target & respond while the add descriptor queue is not empty"
             ),
-            AddDescriptorError::InvalidTargetDescriptor => write!(
+            Self::InvalidTargetDescriptor => write!(
                 f,
                 "target descriptor number exceeds the limit specified in /proc/sys/fs/nr_open"
             ),
-            AddDescriptorError::Interrupted => {
+            Self::Interrupted => {
                 write!(f, "target thread was killed or system call was interrupted")
             }
             Self::Unknown(error_code) => {
@@ -60,9 +60,10 @@ pub struct AddDescriptorOptions {
     /// When allocating the file descriptor in the target, use the file descriptor number specified in the newfd field.
     pub target_descriptor_number: Option<c_int>,
 
-    /// Perform the equivalent of SECCOMP_IOCTL_NOTIF_ADDFD plus SECCOMP_IOCTL_NOTIF_SEND as an atomic operation.
+    /// Perform the equivalent of `SECCOMP_IOCTL_NOTIF_ADDFD` plu`SECCOMP_IOCTL_NOTIF_SEND`ND as an atomic operation.
     /// On successful invocation, the target process's errno will be 0
-    /// and the return value will be the file descriptor number that was allocated in the target.  
+    /// and the return value will be the file descriptor number that was allocated in the target.
+    ///
     /// If allocating the file descriptor in the target fails, the target's system call continues to be blocked until a successful response is sent.
     pub add_and_respond: bool,
 
@@ -71,13 +72,13 @@ pub struct AddDescriptorOptions {
 }
 
 impl AddDescriptorOptions {
-    fn request_flags(&self) -> u32 {
+    const fn request_flags(&self) -> u32 {
         let mut flags = 0;
         if self.target_descriptor_number.is_some() {
             flags |= SECCOMP_ADDFD_FLAG_SETFD;
         }
         if self.add_and_respond {
-            flags |= SECCOMP_ADDFD_FLAG_SEND
+            flags |= SECCOMP_ADDFD_FLAG_SEND;
         }
         flags as u32
     }
@@ -86,7 +87,7 @@ impl AddDescriptorOptions {
         self.target_descriptor_number.unwrap_or_default()
     }
 
-    fn descriptor_flags(&self) -> u32 {
+    const fn descriptor_flags(&self) -> u32 {
         if self.set_descriptor_close_on_exec {
             O_CLOEXEC as u32
         } else {
@@ -119,7 +120,7 @@ pub fn add_descriptor_to_target(
             descriptor,
             UnotifyOperation::AddDescriptorToTarget as u64,
             // Kernel only copies the data, so a const pointer is ok
-            &add_descriptor_request as *const SeccompNotifAddDescriptor,
+            &raw const add_descriptor_request,
         )
     } {
         -1 => Err(match crate::error::errno() {
