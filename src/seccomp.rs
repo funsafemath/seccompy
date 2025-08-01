@@ -17,7 +17,7 @@ use std::{ffi::c_long, ptr};
 
 use libc::{
     EINVAL, SECCOMP_GET_ACTION_AVAIL, SECCOMP_GET_NOTIF_SIZES, SECCOMP_SET_MODE_FILTER,
-    SECCOMP_SET_MODE_STRICT, SYS_seccomp, c_ushort, seccomp_notif_sizes, syscall,
+    SECCOMP_SET_MODE_STRICT, SYS_seccomp, c_ushort, seccomp_notif_sizes, sock_fprog, syscall,
 };
 
 pub mod check_action;
@@ -45,9 +45,17 @@ enum Operation<'a> {
     GetNotificationSizes(&'a mut seccomp_notif_sizes),
 }
 
-impl From<&Operation<'_>> for c_uint {
-    fn from(value: &Operation) -> Self {
-        match value {
+impl Operation<'_> {
+    fn flags(&self) -> c_uint {
+        if let Self::SetModeFilter(flags, _) = self {
+            c_uint::from(*flags)
+        } else {
+            0
+        }
+    }
+
+    const fn opcode(&self) -> c_uint {
+        match self {
             Operation::SetModeStrict => SECCOMP_SET_MODE_STRICT,
             Operation::SetModeFilter(_, _) => SECCOMP_SET_MODE_FILTER,
             Operation::CheckActionAvailable(_) => SECCOMP_GET_ACTION_AVAIL,
@@ -61,25 +69,20 @@ unsafe fn seccomp_syscall(operation: c_uint, flags: c_uint, args: *mut c_void) -
     unsafe { syscall(SYS_seccomp, operation, flags, args) }
 }
 
-#[repr(C)]
-struct BpfProgram {
-    pub length: c_ushort,
-    pub bytecode: *const BpfInstruction,
-}
+type BpfProgram = sock_fprog;
 
+// It's possible to write this function more concisely, but there's unsafe code,
+// so the most obviously correct way is probably better than the shortest one
 fn seccomp(operation: Operation) -> c_long {
-    let op = c_uint::from(&operation);
+    let opcode = operation.opcode();
+    let flags = operation.flags();
 
-    // All operations except the SECCOMP_SET_MODE_FILTER require the flags to be zero
-    // FilterFlags::default() returns zero when converted to a c_int
-    let flags = c_uint::from(match &operation {
-        &Operation::SetModeFilter(flags, _) => flags,
-        _ => FullFilterFlags::default(),
-    });
-
-    let args = match operation {
-        // Strict mode requires a null pointer as args
-        Operation::SetModeStrict => ptr::null_mut::<c_void>(),
+    match operation {
+        Operation::SetModeStrict => {
+            // Strict mode requires a null pointer as args
+            let args = ptr::null_mut::<c_void>();
+            unsafe { seccomp_syscall(opcode, flags, args) }
+        }
         Operation::SetModeFilter(_, bpf_instructions) => {
             // EINVAL is returned if there are no instructions,
             // so we can return an error early
@@ -87,7 +90,7 @@ fn seccomp(operation: Operation) -> c_long {
                 return c_long::from(EINVAL);
             }
 
-            let Ok(length) = c_ushort::try_from(bpf_instructions.len()) else {
+            let Ok(len) = c_ushort::try_from(bpf_instructions.len()) else {
                 // EINVAL is returned when the number of instructions is more than BPF_MAXINSNS;
                 // if there's an overflow, the number of instructions must be larger than BPF_MAXINSNS,
                 // so we can return an error early
@@ -96,30 +99,23 @@ fn seccomp(operation: Operation) -> c_long {
             };
 
             // Casting to a mutable pointer is ok, since the kernel doesn't write into the buffer
-            &BpfProgram {
-                length,
-                bytecode: bpf_instructions.as_ptr(),
-            } as *const BpfProgram as *mut c_void
+            let mut bpf_program = BpfProgram {
+                len,
+                filter: bpf_instructions.as_ptr().cast_mut(),
+            };
+            unsafe { seccomp_syscall(opcode, flags, (&raw mut bpf_program).cast()) }
         }
         Operation::CheckActionAvailable(filter_action) => {
-            &filter_action.action() as *const u32 as *mut c_void
+            // Actually the action won't be mutated, but this does not cause any problems
+            let mut action = filter_action.action();
+            unsafe { seccomp_syscall(opcode, flags, (&raw mut action).cast::<c_void>()) }
         }
-        Operation::GetNotificationSizes(notification_sizes) => {
-            notification_sizes as *mut seccomp_notif_sizes as *mut c_void
-        }
-    };
-
-    unsafe { seccomp_syscall(op, flags, args) }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// [`FullFilterFlags`] default value is used for all operations except the filter one. If it is not zero for these operations, the
-    /// system call will return an error
-    #[test]
-    fn verify_default_flags() {
-        assert_eq!(c_uint::from(FullFilterFlags::default()), 0);
+        Operation::GetNotificationSizes(seccomp_notif_sizes) => unsafe {
+            seccomp_syscall(
+                opcode,
+                flags,
+                ptr::from_mut::<seccomp_notif_sizes>(seccomp_notif_sizes).cast::<c_void>(),
+            )
+        },
     }
 }
