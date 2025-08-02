@@ -1,7 +1,56 @@
+#[cfg(not(target_os = "android"))]
 use libc::{
     BPF_A, BPF_ABS, BPF_ALU, BPF_IMM, BPF_JA, BPF_JEQ, BPF_JGE, BPF_JGT, BPF_JMP, BPF_JSET, BPF_K,
     BPF_LD, BPF_LDX, BPF_RET, BPF_ST, BPF_STX, BPF_W, BPF_X,
 };
+#[cfg(target_os = "android")]
+mod bpf_flags {
+    use libc::__u32;
+
+    // linux/bpf_common.h
+    pub const BPF_LD: __u32 = 0x00;
+    pub const BPF_LDX: __u32 = 0x01;
+    pub const BPF_ST: __u32 = 0x02;
+    pub const BPF_STX: __u32 = 0x03;
+    pub const BPF_ALU: __u32 = 0x04;
+    pub const BPF_JMP: __u32 = 0x05;
+    pub const BPF_RET: __u32 = 0x06;
+    pub const BPF_MISC: __u32 = 0x07;
+    pub const BPF_W: __u32 = 0x00;
+    pub const BPF_H: __u32 = 0x08;
+    pub const BPF_B: __u32 = 0x10;
+    pub const BPF_IMM: __u32 = 0x00;
+    pub const BPF_ABS: __u32 = 0x20;
+    pub const BPF_IND: __u32 = 0x40;
+    pub const BPF_MEM: __u32 = 0x60;
+    pub const BPF_LEN: __u32 = 0x80;
+    pub const BPF_MSH: __u32 = 0xa0;
+    pub const BPF_ADD: __u32 = 0x00;
+    pub const BPF_SUB: __u32 = 0x10;
+    pub const BPF_MUL: __u32 = 0x20;
+    pub const BPF_DIV: __u32 = 0x30;
+    pub const BPF_OR: __u32 = 0x40;
+    pub const BPF_AND: __u32 = 0x50;
+    pub const BPF_LSH: __u32 = 0x60;
+    pub const BPF_RSH: __u32 = 0x70;
+    pub const BPF_NEG: __u32 = 0x80;
+    pub const BPF_MOD: __u32 = 0x90;
+    pub const BPF_XOR: __u32 = 0xa0;
+    pub const BPF_JA: __u32 = 0x00;
+    pub const BPF_JEQ: __u32 = 0x10;
+    pub const BPF_JGT: __u32 = 0x20;
+    pub const BPF_JGE: __u32 = 0x30;
+    pub const BPF_JSET: __u32 = 0x40;
+    pub const BPF_K: __u32 = 0x00;
+    pub const BPF_X: __u32 = 0x08;
+
+    // linux/filter.h
+    pub const BPF_A: __u32 = 0x10;
+    pub const BPF_TAX: __u32 = 0x00;
+    pub const BPF_TXA: __u32 = 0x80;
+}
+#[cfg(target_os = "android")]
+use bpf_flags::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u16)]

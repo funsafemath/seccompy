@@ -1,6 +1,9 @@
 use std::{collections::HashMap, error::Error, fmt::Display};
 
+#[cfg(not(target_os = "android"))]
 use libc::BPF_MAXINSNS;
+#[cfg(target_os = "android")]
+const BPF_MAXINSNS: libc::c_int = 4096;
 
 use crate::{
     FilterAction,

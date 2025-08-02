@@ -1,7 +1,7 @@
 use core::ffi::c_int;
 use std::{error::Error, fmt::Display};
 
-use libc::{ENOENT, SECCOMP_USER_NOTIF_FLAG_CONTINUE};
+use libc::{ENOENT, Ioctl, SECCOMP_USER_NOTIF_FLAG_CONTINUE};
 
 use crate::unotify::{SeccompNotif, SeccompNotifResponse, UnotifyOperation};
 
@@ -37,7 +37,7 @@ pub fn send_response(
     match unsafe {
         libc::ioctl(
             descriptor,
-            UnotifyOperation::Respond as u64,
+            Ioctl::from(UnotifyOperation::Respond),
             // Kernel only copies the data, so a const pointer is ok
             &raw const response,
         )

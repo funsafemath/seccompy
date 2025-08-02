@@ -1,4 +1,14 @@
-use libc::{EM_X86_64, sock_filter};
+use libc::sock_filter;
+
+#[cfg(not(target_os = "android"))]
+use libc::{EM_AARCH64, EM_X86_64};
+#[cfg(target_os = "android")]
+mod architectures {
+    pub const EM_X86_64: u16 = 62;
+    pub const EM_AARCH64: u16 = 183;
+}
+#[cfg(target_os = "android")]
+use architectures::*;
 
 pub mod instruction;
 pub mod primitive;
@@ -46,21 +56,32 @@ pub type BpfInstruction = sock_filter;
 #[derive(Debug, Clone, Copy)]
 #[repr(u32)]
 pub enum Architecture {
-    // #define __AUDIT_ARCH_64BIT 0x80000000
-    // #define __AUDIT_ARCH_LE	   0x40000000
+    // #define AUDIT_ARCH_X86_64	(EM_X86_64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+    X86_64 = EM_X86_64 as u32 | Self::ARCH_64_BIT | Self::ARCH_LE,
+
     // #define AUDIT_ARCH_AARCH64	(EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
-    X86_64 = EM_X86_64 as u32 | Self::ARCH_64_BIT | Self::ARCH_32_LE,
+    Aarch64 = EM_AARCH64 as u32 | Self::ARCH_64_BIT | Self::ARCH_LE,
 }
 
 impl Architecture {
+    // #define __AUDIT_ARCH_64BIT 0x80000000
     const ARCH_64_BIT: u32 = 0x8000_0000;
-    const ARCH_32_LE: u32 = 0x4000_0000;
+
+    // #define __AUDIT_ARCH_LE	   0x40000000
+    const ARCH_LE: u32 = 0x4000_0000;
 
     /// Get the compile time architecture
-    pub fn compile_time_arch() -> Self {
-        match std::env::consts::ARCH {
-            "x86_64" => Self::X86_64,
-            _ => unimplemented!(),
+    pub const fn compile_time_arch() -> Self {
+        #[cfg(target_arch = "x86_64")]
+        return Self::X86_64;
+        #[cfg(target_arch = "aarch64")]
+        return Self::Aarch64;
+        #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+        {
+            compile_error!(
+                "compile_time_arch() not implemented for the target architecture, you may want to extend the Architecture enum"
+            );
+            unimplemented!()
         }
     }
 }

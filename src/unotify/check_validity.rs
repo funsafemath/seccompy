@@ -1,7 +1,7 @@
 use core::ffi::c_int;
 use std::{error::Error, fmt::Display};
 
-use libc::ENOENT;
+use libc::{ENOENT, Ioctl};
 
 use crate::unotify::{SeccompNotif, UnotifyOperation};
 
@@ -36,7 +36,7 @@ pub fn check_validity(
     match unsafe {
         libc::ioctl(
             descriptor,
-            UnotifyOperation::CheckValidity as u64,
+            Ioctl::from(UnotifyOperation::CheckValidity),
             // Kernel only copies the data, so a const pointer is ok
             &raw const notification.id,
         )

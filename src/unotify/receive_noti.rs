@@ -1,7 +1,7 @@
 use core::ffi::c_int;
 use std::{error::Error, fmt::Display};
 
-use libc::ENOENT;
+use libc::{ENOENT, Ioctl};
 
 use crate::unotify::{SeccompData, SeccompNotif, UnotifyOperation};
 
@@ -49,7 +49,7 @@ pub fn receive_notification(descriptor: c_int) -> Result<SeccompNotif, ReceiveNo
     match unsafe {
         libc::ioctl(
             descriptor,
-            UnotifyOperation::ReceiveNotification as u64,
+            Ioctl::from(UnotifyOperation::ReceiveNotification),
             &raw mut notification,
         )
     } {

@@ -17,8 +17,21 @@ use std::{ffi::c_long, ptr};
 
 use libc::{
     EINVAL, SECCOMP_GET_ACTION_AVAIL, SECCOMP_GET_NOTIF_SIZES, SECCOMP_SET_MODE_FILTER,
-    SECCOMP_SET_MODE_STRICT, SYS_seccomp, c_ushort, seccomp_notif_sizes, sock_fprog, syscall,
+    SECCOMP_SET_MODE_STRICT, SYS_seccomp, c_ushort, sock_fprog, syscall,
 };
+
+#[cfg(not(target_os = "android"))]
+use libc::seccomp_notif_sizes;
+#[cfg(target_os = "android")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct seccomp_notif_sizes {
+    pub seccomp_notif: libc::__u16,
+    pub seccomp_notif_resp: libc::__u16,
+    pub seccomp_data: libc::__u16,
+}
+
+type SeccompNotifSizes = seccomp_notif_sizes;
 
 pub mod check_availability;
 pub mod filter;
@@ -114,7 +127,7 @@ fn seccomp(operation: Operation) -> c_long {
             seccomp_syscall(
                 opcode,
                 flags,
-                ptr::from_mut::<seccomp_notif_sizes>(seccomp_notif_sizes).cast::<c_void>(),
+                ptr::from_mut::<SeccompNotifSizes>(seccomp_notif_sizes).cast::<c_void>(),
             )
         },
     }

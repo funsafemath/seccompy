@@ -1,9 +1,9 @@
 use core::ffi::c_int;
 use std::{error::Error, fmt::Display};
 
-use libc::{EINVAL, seccomp_notif_sizes};
+use libc::EINVAL;
 
-use crate::seccomp::{Operation, seccomp};
+use crate::seccomp::{Operation, SeccompNotifSizes, seccomp};
 
 #[derive(Debug)]
 pub enum GetNotificationSizesError {
@@ -65,7 +65,7 @@ pub struct NotificationSizes {
 /// ```
 /// See `seccomp_unotify(2)` for further details.
 pub fn get_notification_sizes() -> Result<NotificationSizes, GetNotificationSizesError> {
-    let mut notif_sizes = seccomp_notif_sizes {
+    let mut notif_sizes = SeccompNotifSizes {
         seccomp_notif: 0,
         seccomp_notif_resp: 0,
         seccomp_data: 0,

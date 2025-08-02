@@ -2,7 +2,8 @@ use core::ffi::c_int;
 use std::{error::Error, fmt::Display};
 
 use libc::{
-    EBADF, EBUSY, EMFILE, ENOENT, O_CLOEXEC, SECCOMP_ADDFD_FLAG_SEND, SECCOMP_ADDFD_FLAG_SETFD,
+    EBADF, EBUSY, EMFILE, ENOENT, Ioctl, O_CLOEXEC, SECCOMP_ADDFD_FLAG_SEND,
+    SECCOMP_ADDFD_FLAG_SETFD,
 };
 
 use crate::unotify::{SeccompNotif, SeccompNotifAddDescriptor, UnotifyOperation};
@@ -118,7 +119,7 @@ pub fn add_descriptor_to_target(
     match unsafe {
         libc::ioctl(
             descriptor,
-            UnotifyOperation::AddDescriptorToTarget as u64,
+            Ioctl::from(UnotifyOperation::AddDescriptorToTarget),
             // Kernel only copies the data, so a const pointer is ok
             &raw const add_descriptor_request,
         )
