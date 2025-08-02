@@ -1,3 +1,4 @@
 /target
+.direnv
 # not needed for now
 /src/bin
