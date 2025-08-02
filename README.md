@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         FilterAction::Errno { errno: 26 },
     );
 
-    // To set a filter, a thread must have the no_new_privs attribute or the `CAP_SYS_ADMIN` capability
+    // To set a filter, a thread must have the `no_new_privs` attribute or the `CAP_SYS_ADMIN` capability
     seccompy::set_no_new_privileges()?;
 
     seccompy::set_filter(FilterFlags::default(), &filter.compile()?)?;
