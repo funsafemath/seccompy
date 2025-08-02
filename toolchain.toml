@@ -1,3 +1,5 @@
+# Not a rust-toolchain.toml, as the nightly rust is not a requirement, 
+# and non-nix users can install the compilation targets manually using rustup
 [toolchain]
 channel = "nightly"
 profile = "default"
