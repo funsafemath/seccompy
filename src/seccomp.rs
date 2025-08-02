@@ -24,7 +24,7 @@ use libc::{
 use libc::seccomp_notif_sizes;
 #[cfg(target_os = "android")]
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct seccomp_notif_sizes {
     pub seccomp_notif: libc::__u16,
     pub seccomp_notif_resp: libc::__u16,

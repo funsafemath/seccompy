@@ -1,6 +1,6 @@
 [package]
 name = "seccompy"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 keywords = ["seccomp"]
 categories = ["security"]
@@ -9,4 +9,6 @@ license = "Apache-2.0"
 repository = "https://github.com/funsafemath/seccompy"
 
 [dependencies]
-libc = "0.2.174"
+# extra_traits derives Debug, Eq, Hash, and PartialEq for libc structs
+# feature is enabled mainly for the Debug trait, as some of the libc structs are exposed to the users of the library
+libc = { version = "0.2.174", features = ["extra_traits"] }

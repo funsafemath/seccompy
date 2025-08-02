@@ -11,7 +11,7 @@ mod seccomp_unotify_structs {
     use libc::seccomp_data;
 
     #[repr(C)]
-    #[derive(Clone, Copy)]
+    #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
     pub struct seccomp_notif {
         pub id: __u64,
         pub pid: __u32,
@@ -20,7 +20,7 @@ mod seccomp_unotify_structs {
     }
 
     #[repr(C)]
-    #[derive(Clone, Copy)]
+    #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
     pub struct seccomp_notif_resp {
         pub id: __u64,
         pub val: __s64,
@@ -29,7 +29,7 @@ mod seccomp_unotify_structs {
     }
 
     #[repr(C)]
-    #[derive(Clone, Copy)]
+    #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
     pub struct seccomp_notif_addfd {
         pub id: __u64,
         pub flags: __u32,
