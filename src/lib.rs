@@ -27,6 +27,8 @@ pub use seccomp_bpf::filter::{Filter, FilterArgs};
 
 pub mod unotify;
 
+pub use unotify::{SeccompData, SeccompNotif, SeccompNotifResponse};
+
 pub use unotify::{AddDescriptorError, AddDescriptorOptions, add_descriptor_to_target};
 pub use unotify::{CheckValidityError, check_validity};
 pub use unotify::{ReceiveNotificationError, receive_notification};

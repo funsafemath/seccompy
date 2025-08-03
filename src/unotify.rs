@@ -53,11 +53,11 @@ pub use send_response::{
     SendResponseError, continue_syscall, fail_syscall, return_syscall, send_response,
 };
 
-type SeccompNotif = seccomp_notif;
+pub type SeccompNotif = seccomp_notif;
 
-type SeccompNotifResponse = seccomp_notif_resp;
+pub type SeccompNotifResponse = seccomp_notif_resp;
 
-type SeccompData = seccomp_data;
+pub type SeccompData = seccomp_data;
 
 type SeccompNotifAddDescriptor = seccomp_notif_addfd;
 
